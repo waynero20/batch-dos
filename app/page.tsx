@@ -22,40 +22,61 @@ export default async function Home() {
   const voted = await votedNames()
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      {/* The cover carries the batch's own wordmark, so the page does not repeat it. */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-base-200">
+    <main className="min-h-dvh">
+      {/* Full-bleed: cover.jpg is 1920px wide, the only asset with the pixels for it.
+          16/9 matches the source exactly, so object-cover is a no-op until the height
+          cap bites on short windows. */}
+      <div className="relative aspect-[16/9] max-h-[74dvh] w-full overflow-hidden bg-base-200">
         <Image
           src="/cover.jpg"
           alt="Asa na' ta? — a scrapbook collage of the batch photo, nine years later."
           fill
           priority
-          sizes="(max-width: 448px) 100vw, 448px"
-          className="object-cover"
+          sizes="100vw"
+          className="object-cover object-center"
         />
       </div>
 
-      <div className="flex flex-1 flex-col px-6 pb-12 pt-7">
-        <header className="rise">
-          <h1 className="h-display text-[2.5rem]">Batch DOS Reunion</h1>
-          <p className="mt-2.5 text-[0.95rem] leading-relaxed opacity-55">
+      <section className="shell pb-14 pt-9 lg:grid lg:grid-cols-12 lg:gap-x-10 lg:pb-20 lg:pt-16">
+        <header className="rise lg:col-span-7">
+          <p className="eyebrow">Cebu · Nine years later</p>
+          <h1 className="h-display mt-4 text-[2.5rem] lg:text-[4.25rem] xl:text-[5rem]">
+            Batch DOS Reunion
+          </h1>
+          <p className="mt-5 max-w-[38ch] text-[0.95rem] leading-relaxed opacity-55 lg:text-lg">
             Five questions, about two minutes. Nothing is booked until the batch has voted.
           </p>
         </header>
 
-        <div className="divider my-7 opacity-30" />
-
-        <section className="rise flex-1">
-          <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-sm font-medium">Who are you?</h2>
-            <span className="text-xs tabular-nums opacity-45">
-              {voted.length}/{ROSTER.length} voted
+        <div className="mt-8 lg:col-span-5 lg:mt-0 lg:self-end">
+          <div className="rule-heavy" />
+          <div className="flex items-baseline justify-between pt-4">
+            <span className="folio text-sm">73 NAMES</span>
+            <span className="eyebrow">
+              {voted.length}/{ROSTER.length} VOTED
             </span>
+            <span className="eyebrow">ISSUE ONE</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t-2 border-base-content">
+        <div className="shell py-12 lg:grid lg:grid-cols-12 lg:gap-x-10 lg:py-16">
+          <div className="lg:col-span-3 lg:sticky lg:top-10 lg:self-start">
+            <p className="eyebrow">The Register</p>
+            <h2 className="h-display mt-2 text-[1.75rem] lg:text-[2.25rem]">Who are you?</h2>
+            <p className="caption mt-3 max-w-[32ch]">
+              Find your name to open the ballot. No password, no sign-in.
+            </p>
+            <p className="folio mt-7 text-[3.5rem] lg:text-[4.5rem]">{voted.length}</p>
+            <p className="caption mt-1">of {ROSTER.length} voted</p>
           </div>
 
-          <RosterPicker roster={ROSTER} voted={voted} open={votingOpen()} />
-        </section>
-      </div>
+          <div className="mt-8 lg:col-span-9 lg:mt-0">
+            <RosterPicker roster={ROSTER} voted={voted} open={votingOpen()} />
+          </div>
+        </div>
+      </section>
     </main>
   )
 }

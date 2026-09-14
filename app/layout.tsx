@@ -15,12 +15,21 @@ const bricolage = Bricolage_Grotesque({
 })
 
 export const metadata: Metadata = {
+  // The link is shared once into a group chat. Without this it unfurls bare.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: 'Batch DOS Reunion',
-  description: 'Nine years later. Help the batch decide.',
+  description: 'Nine years later. Help the batch decide where we go.',
   openGraph: {
-    title: 'Batch DOS Reunion',
-    description: 'Nine years later. Help the batch decide.',
+    title: "Asa na' ta? · Batch DOS Reunion",
+    description: 'Nine years later. Five questions, about two minutes.',
     type: 'website',
+    images: [{ url: '/cover.jpg', width: 1920, height: 1080, alt: "Asa na' ta? — nine years later" }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Asa na' ta? · Batch DOS Reunion",
+    description: 'Nine years later. Five questions, about two minutes.',
+    images: ['/cover.jpg'],
   },
 }
 

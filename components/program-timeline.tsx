@@ -1,15 +1,15 @@
-import { PROGRAM, PROGRAM_KIND_LABEL, type ProgramKind } from '@/lib/program'
+import { PROGRAM, PROGRAM_KIND_LABEL, type ProgramItem, type ProgramKind } from '@/lib/program'
 
 /** Games and the chill night are what people actually turn up for, so they get a mark. */
 const HIGHLIGHTED: readonly ProgramKind[] = ['games', 'night']
 
-export function ProgramTimeline() {
+export function ProgramTimeline({ items = PROGRAM }: { items?: readonly ProgramItem[] } = {}) {
   return (
-    <ol className="relative">
-      {PROGRAM.map((item, i) => {
-        const last = i === PROGRAM.length - 1
+    <ol className="relative lg:text-[0.9375rem]">
+      {items.map((item, i) => {
+        const last = i === items.length - 1
         return (
-          <li key={`${item.start}-${item.title}`} className="relative flex gap-3.5 pb-5 last:pb-0">
+          <li key={`${item.start}-${item.title}`} className="relative flex gap-3.5 pb-5 last:pb-0 lg:pb-6">
             {/* Rail. Stops at the final dot rather than running past it. */}
             {!last && (
               <span
@@ -44,7 +44,7 @@ export function ProgramTimeline() {
                 </p>
               )}
               {item.note && (
-                <p className="mt-1 text-[0.8125rem] leading-relaxed opacity-55">{item.note}</p>
+                <p className="mt-1 max-w-[46ch] text-[0.8125rem] leading-relaxed opacity-55 lg:border-l lg:border-base-300 lg:pl-4">{item.note}</p>
               )}
             </div>
           </li>

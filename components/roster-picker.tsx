@@ -31,7 +31,7 @@ export function RosterPicker({ roster, voted, open }: Props) {
 
   return (
     <div>
-      <label className="input input-lg w-full rounded-field">
+      <label className="input input-lg w-full rounded-field lg:max-w-lg">
         <svg
           aria-hidden
           viewBox="0 0 24 24"
@@ -58,13 +58,13 @@ export function RosterPicker({ roster, voted, open }: Props) {
         {results.length} of {roster.length} names shown
       </p>
 
-      <ul className="mt-2 max-h-[50vh] divide-y divide-base-300/70 overflow-y-auto overscroll-contain">
+      <ul className="mt-2 max-h-[50vh] overflow-y-auto overscroll-contain lg:max-h-[62vh] lg:columns-2 lg:gap-x-10 xl:columns-3">
         {results.map((name) => (
-          <li key={name}>
+          <li key={name} className="lg:break-inside-avoid">
             <button
               type="button"
               onClick={() => router.push(`/vote?name=${encodeURIComponent(name)}`)}
-              className="group flex w-full items-center gap-3 py-3.5 text-left transition-colors hover:bg-base-200/60"
+              className="group flex w-full items-center gap-3 border-b border-base-300/70 py-3.5 text-left transition-colors hover:bg-base-200/60"
             >
               <span className="flex-1 truncate text-[0.95rem] font-medium">{name}</span>
 

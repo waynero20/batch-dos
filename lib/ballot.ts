@@ -26,7 +26,17 @@ export const DATES = [
   { id: 'jan-9', label: 'January 9', track: 'city' },
 ] as const satisfies readonly DateOption[]
 
-export type VenuePhoto = { src: string; alt: string }
+export type VenuePhoto = {
+  src: string
+  alt: string
+  /** Intrinsic pixels. The venue card grades itself from these — never from an id.
+   *  Adding a photo? Run: sips -g pixelWidth -g pixelHeight <file> */
+  w: number
+  h: number
+  /** object-position. Set only where a centred crop would cut the subject or leave
+   *  the venue's own watermark in frame. */
+  focus?: string
+}
 
 export type VenueOption = {
   id: string
@@ -35,12 +45,12 @@ export type VenueOption = {
   description: string
   location: string
   features: readonly string[]
-  /**
-   * First photo is the card's hero. Purita Farms and Bakhawan use photos supplied by
-   * the committee; the two city venues use crops lifted from the proposal deck, which
-   * is the only imagery that exists for them so far and is noticeably lower resolution.
-   */
+  /** First photo is the card's hero. Counts are uneven by design — 1 / 3 / 5 / 3 —
+   *  and the card grades its own layout from each file's intrinsic pixels. */
   photos: readonly VenuePhoto[]
+  /** Closing line for a venue with a single photo, so the one-photo card reads as the
+   *  fullest rather than the emptiest. Ignored when the venue has extras. */
+  pull?: string
 }
 
 export const VENUES = [
@@ -55,8 +65,11 @@ export const VENUES = [
       {
         src: '/venues/purita-farms-1.jpg',
         alt: 'Aerial view of Purita Farms at sunset — a green pagoda roof above a curved pool deck, surrounded by dense trees.',
+        w: 2048,
+        h: 1536,
       },
     ],
+    pull: 'The pool, the pickleball court, and a roof to sleep under.',
   },
   {
     id: 'bakhawan-beach-home',
@@ -69,14 +82,23 @@ export const VENUES = [
       {
         src: '/venues/bakhawan-beach-home-1.jpg',
         alt: 'Turquoise shallows off Bakhawan Beach Home, with an open-air hut on the sand under trees.',
+        w: 828,
+        h: 884,
+        focus: '50% 60%',
       },
       {
         src: '/venues/bakhawan-beach-home-2.jpg',
         alt: 'The beach house seen from the sand — a long covered porch shaded by trees.',
+        w: 1080,
+        h: 593,
+        focus: '50% 55%',
       },
       {
         src: '/venues/bakhawan-beach-home-3.jpg',
         alt: 'A pool table on the tiled deck beneath a bamboo roof, open to the sea.',
+        w: 940,
+        h: 788,
+        focus: '40% 40%',
       },
     ],
   },
@@ -90,7 +112,34 @@ export const VENUES = [
     photos: [
       {
         src: '/venues/island-hopping-1.jpg',
-        alt: 'The deck of the boat under a shade sail, open sea and clear sky beyond.',
+        alt: 'The bow of the boat with beanbags on a pink deck, turquoise water and a banana boat alongside.',
+        w: 1288,
+        h: 966,
+      },
+      {
+        src: '/venues/island-hopping-2.jpg',
+        alt: 'The boat full of people at sunset, seated around tables under the canopy.',
+        w: 1440,
+        h: 1080,
+      },
+      {
+        src: '/venues/island-hopping-3.jpg',
+        alt: 'Looking down the length of the deck at dawn, benches and beanbags either side of the mast.',
+        w: 960,
+        h: 720,
+      },
+      {
+        src: '/venues/island-hopping-4.jpg',
+        alt: 'The shaded lounge deck with a long table, armchair and scattered cushions.',
+        w: 960,
+        h: 720,
+      },
+      {
+        src: '/venues/island-hopping-5.jpg',
+        alt: 'The outrigger moored at the shore, passengers boarding across the gangplank.',
+        w: 720,
+        h: 960,
+        focus: '50% 45%',
       },
     ],
   },
@@ -100,11 +149,25 @@ export const VENUES = [
     track: 'city',
     description: 'Four-level townhome with rooms for the night.',
     location: 'Cebu City',
-    features: ['Four levels', 'Sleeps over', 'In the city'],
+    features: ['Four levels', 'Sleeps over', 'Home cinema', 'In the city'],
     photos: [
       {
+        src: '/venues/providence-townhomes-2.jpg',
+        alt: 'The lounge and home cinema — a projector screen, deep armchairs, a moss wall and life-size superhero figures.',
+        w: 2048,
+        h: 1364,
+      },
+      {
         src: '/venues/providence-townhomes-1.jpg',
-        alt: 'The townhome interior — open-plan kitchen and dining area with a stone feature wall.',
+        alt: 'The open-plan living, dining and kitchen area, with a stone feature wall and a long table.',
+        w: 960,
+        h: 640,
+      },
+      {
+        src: '/venues/providence-townhomes-3.jpg',
+        alt: 'A themed bedroom lit in blue and red, with a projector, games console and a wall of film posters.',
+        w: 2048,
+        h: 1516,
       },
     ],
   },
@@ -210,6 +273,69 @@ export const trackForDate = (id: DateId): Track =>
 
 export const venuesForTrack = (track: Track): readonly VenueOption[] =>
   VENUES.filter((v) => v.track === track)
+
+/** Max CSS width at which a photo still resolves at roughly 2x device pixel ratio. */
+export const photoCap = (p: VenuePhoto): number => Math.floor(p.w / 2)
+
+/** span and sizes travel together so they can never drift apart. */
+const VENUE_WIDTH = {
+  wide: {
+    span: 'xl:col-span-7',
+    sizes:
+      '(max-width:639px) 100vw, (max-width:767px) 512px, (max-width:1023px) 46vw, (max-width:1279px) 34vw, (max-width:1439px) 38vw, 542px',
+  },
+  equal: {
+    span: 'xl:col-span-6',
+    sizes:
+      '(max-width:639px) 100vw, (max-width:767px) 512px, (max-width:1023px) 46vw, (max-width:1279px) 34vw, (max-width:1439px) 32vw, 459px',
+  },
+  narrow: {
+    span: 'xl:col-span-5',
+    sizes:
+      '(max-width:639px) 100vw, (max-width:767px) 512px, (max-width:1023px) 46vw, (max-width:1279px) 34vw, (max-width:1439px) 27vw, 378px',
+  },
+} as const
+
+/**
+ * The wider column goes to whichever hero has the pixels to fill it — graded from the
+ * files, never from a venue id. Re-shoot a photo and the layout re-grades itself.
+ * Only skews on a real (>=25%) resolution advantage.
+ */
+export const venueLayout = (pair: readonly VenueOption[]) => {
+  if (pair.length !== 2) return pair.map(() => VENUE_WIDTH.equal)
+  const ca = photoCap(pair[0]!.photos[0]!)
+  const cb = photoCap(pair[1]!.photos[0]!)
+  if (ca >= cb * 1.25) return [VENUE_WIDTH.wide, VENUE_WIDTH.narrow]
+  if (cb >= ca * 1.25) return [VENUE_WIDTH.narrow, VENUE_WIDTH.wide]
+  return [VENUE_WIDTH.equal, VENUE_WIDTH.equal]
+}
+
+/** One source of truth for the rail card, the mobile chip strip and the RSVP summary. */
+export const planRows = (d: {
+  dateId?: string
+  venueId?: string
+  foodId?: string
+  paletteId?: string
+}) =>
+  [
+    { step: 0, label: 'When', value: DATES.find((x) => x.id === d.dateId)?.label },
+    { step: 1, label: 'Where', value: VENUES.find((x) => x.id === d.venueId)?.name },
+    { step: 2, label: 'Food', value: FOOD.find((x) => x.id === d.foodId)?.name },
+    { step: 3, label: 'Wear', value: PALETTES.find((x) => x.id === d.paletteId)?.name },
+  ] as const
+
+/** Standfirsts. Step 1 is null — it keeps its dynamic track sentence, which is the only
+ *  place the province/city rule is explained. */
+export const STEP_NOTE = [
+  'Two province dates, one in the city. Your date decides which places are on the table.',
+  null,
+  'Three caterers, priced by tray and by head. The final package follows the headcount.',
+  'Four palettes off the moodboard. Any shade counts — nobody is buying anything new.',
+  'Same plan wherever we land. One last question after this.',
+  'Check the card, then tell us if you’re coming.',
+] as const
+
+export const VENUE_CLEARED_NOTE = 'Cleared — that date changes the venues.'
 
 /** "Purita Farms or Bakhawan Beach Home" — shown under a date so the choice it
  *  commits you to is visible before you make it. */

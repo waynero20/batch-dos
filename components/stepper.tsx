@@ -19,7 +19,7 @@ export function Stepper({ labels, current, furthest, onJump }: Props) {
           <li
             key={label}
             data-content={done ? '✓' : `${i + 1}`}
-            className={`step text-[0.6875rem] ${i <= current ? 'step-primary' : ''}`}
+            className={`step text-[0.625rem] md:text-[0.6875rem] lg:text-xs ${i <= current ? 'step-primary' : ''}`}
             aria-current={i === current ? 'step' : undefined}
           >
             {reachable ? (

@@ -66,6 +66,15 @@ value in the interface; every surface, border and muted text is a true grey rath
 a tinted blue, so the accent has nothing to compete with. The deck's yellow survives
 only in the dress-code swatches, which are raw hex and not theme tokens.
 
+**Layout.** One container, `.shell`, capped at 1440px — wider and the venue heroes
+get asked for more pixels than the files have. `.bleed` breaks an element out to the
+true viewport edge; it is used only for `cover.jpg`, the one asset wide enough for it.
+
+Each ballot step is a two-column editorial spread from `lg`: a sticky rail carrying the
+step numeral, the question, a standfirst and the running plan, beside the answers. On
+mobile the rail is simply the first stacked block, and the plan appears instead as a
+scrollable chip strip in the header once the first answer exists.
+
 **Type is Bricolage Grotesque over DM Sans.** Bricolage carries anything that speaks —
 page titles, questions, venue names over photos, the tally's hero number — at 600 weight
 with negative tracking. DM Sans handles everything that merely labels: options, badges,
@@ -83,14 +92,28 @@ Nothing but `lib/ballot.ts` needs editing to change wording.
 
 ## Photos
 
-`public/venues/<venue-id>-N.jpg`, wired to venues through the `photos` field in
-`lib/ballot.ts`. The first photo is the card's hero and gets a gradient with the venue
-name over it; any others appear as a thumbnail strip below the description.
+`public/venues/<venue-id>-N.jpg`, wired through the `photos` field in `lib/ballot.ts`.
+The first photo is the card's hero; the rest become a thumbnail grid beneath it.
 
-**Purita Farms and Bakhawan Beach Home use committee photos. The two city venues do
-not have any** — their images are crops lifted out of the proposal deck and are
-noticeably lower resolution (560×480 and 720×460). Replace them when real photos exist:
-drop the file in `public/venues/` and add it to that venue's `photos` array.
+**Counts are uneven by design — 1 / 3 / 5 / 3 — and the card grades its own layout from
+each file's intrinsic pixels, never from a venue id.** `photoCap()` is `width / 2`, the
+widest a file can be rendered and still resolve at 2× DPR. `venueLayout()` gives the
+wider grid column to whichever hero in the pair has the pixels for it, and only when the
+advantage is real (≥25%). Re-shoot a photo, update `w`/`h`, and the layout re-grades
+itself with no code change.
+
+Adding a photo: drop it in `public/venues/`, run `sips -g pixelWidth -g pixelHeight` on
+it, and add `{src, alt, w, h}` to that venue's `photos`. Set `focus` only where a centred
+crop would cut the subject or leave the venue's own watermark in frame.
+
+The tail of each venue card switches on how many extras exist — 0 shows the venue's
+`pull` quote instead of a grid, so the one-photo venue reads as the fullest card rather
+than the emptiest. 1–2 / 3 / 4+ pick a 2-, 3- or 4-column thumbnail grid.
+
+**Resolution ceiling.** `cover.jpg` is 1920px wide, so a full-bleed hero on a large
+retina display renders below 2× and the hand-drawn lettering softens. A 2× or 4× export
+from Canva would fix it. Bakhawan's hero is 828px, which is why it takes the narrow
+column — a wider one would upscale it.
 
 ## The programme
 
