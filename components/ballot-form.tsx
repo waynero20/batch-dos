@@ -23,11 +23,11 @@ type Draft = {
 }
 
 const STEPS = [
-  { key: 'dateId', bisaya: 'Kanus-a ta mag Kita?', english: 'When do we meet?' },
-  { key: 'venueId', bisaya: 'Asa ta mo Adto?', english: 'Where do we go?' },
-  { key: 'foodId', bisaya: 'Unsa ato Kan-on?', english: 'What do we eat?' },
-  { key: 'paletteId', bisaya: 'Unsa ato Isul-ob?', english: 'What do we wear?' },
-  { key: 'attending', bisaya: 'Kita nya ta?', english: 'Are you joining?' },
+  { key: 'dateId', title: 'When should we meet?' },
+  { key: 'venueId', title: 'Where should we go?' },
+  { key: 'foodId', title: 'What should we eat?' },
+  { key: 'paletteId', title: 'What should we wear?' },
+  { key: 'attending', title: 'Are you coming?' },
 ] as const
 
 const storageKey = (name: string) => `batch-dos-ballot:${name}`
@@ -45,7 +45,7 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
       const saved = localStorage.getItem(storageKey(name))
       if (saved) setDraft(JSON.parse(saved) as Draft)
     } catch {
-      // Private browsing or blocked storage — the ballot still works, it just won't resume.
+      // Private browsing or blocked storage — the ballot works, it just won't resume.
     }
   }, [name])
 
@@ -99,46 +99,43 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-20 border-b border-navy/8 bg-alice/85 px-5 py-3 backdrop-blur-md">
-        <div className="mx-auto flex max-w-lg items-center gap-3">
+      <header className="sticky top-0 z-20 bg-base-100/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-md items-center gap-3 px-6 py-4">
           <button
             type="button"
             onClick={() => (step === 0 ? router.push('/') : setStep((s) => s - 1))}
-            className="-ml-1 rounded-lg p-1.5 text-slate transition hover:bg-navy/6"
+            className="btn btn-ghost btn-sm btn-square -ml-2"
             aria-label={step === 0 ? 'Back to the name list' : 'Previous question'}
           >
-            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="m15 6-6 6 6 6" />
             </svg>
           </button>
 
-          <ol className="flex flex-1 items-center gap-1.5" aria-label="Progress">
-            {STEPS.map((s, i) => (
-              <li
-                key={s.key}
-                aria-current={i === step ? 'step' : undefined}
-                className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-                  i < step ? 'bg-navy' : i === step ? 'bg-sun' : 'bg-navy/12'
-                }`}
-              />
-            ))}
-          </ol>
+          <span className="text-xs tabular-nums opacity-45">
+            {step + 1}/{STEPS.length}
+          </span>
 
-          <span className="max-w-[7.5rem] truncate text-xs font-semibold text-slate">{name}</span>
+          <progress
+            className="progress progress-primary h-1 flex-1"
+            value={step + (answered ? 1 : 0)}
+            max={STEPS.length}
+            aria-label="Progress"
+          />
+
+          <span className="max-w-[6.5rem] truncate text-xs opacity-45">{name}</span>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-lg flex-1 px-5 pb-40 pt-7">
-        <div key={step} className="step-in">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate/55">
-            Pangutana {step + 1} sa {STEPS.length}
-          </p>
-          <h1 className="display mt-1.5 text-[clamp(2rem,9vw,2.75rem)] text-navy">
-            {current.bisaya}
-          </h1>
-          <p className="mt-1.5 text-sm font-medium text-slate/70">{current.english}</p>
+      <main className="mx-auto w-full max-w-md flex-1 px-6 pb-36 pt-4">
+        <div key={step} className="rise">
+          <h1 className="h-display text-[1.75rem]">{current.title}</h1>
 
-          <div className="mt-6 space-y-3">
+          {step === 1 && (
+            <p className="mt-2 text-sm opacity-55">{TRACK_LABEL[track!]} options only.</p>
+          )}
+
+          <div className="mt-6 space-y-2.5">
             {step === 0 &&
               DATES.map((d) => (
                 <Option
@@ -147,51 +144,35 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
                   onSelect={() => choose('dateId', d.id)}
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xl font-extrabold text-navy">{d.label}</p>
-                      <p className="mt-0.5 text-sm text-slate/70">{d.sublabel}</p>
-                    </div>
-                    <span
-                      className={`chip ${d.track === 'city' ? 'bg-sky/30 text-navy' : 'bg-butter text-slate'}`}
-                    >
+                    <span className="text-lg font-semibold">{d.label}</span>
+                    <span className="badge badge-sm border-0 bg-base-200 font-medium opacity-70">
                       {TRACK_LABEL[d.track]}
                     </span>
                   </div>
                 </Option>
               ))}
 
-            {step === 1 && (
-              <>
-                <p className="mb-1 rounded-xl bg-navy/5 px-3.5 py-2.5 text-[0.8rem] leading-relaxed text-slate">
-                  Kay gipili nimo ang <strong className="font-bold">{TRACK_LABEL[track!]}</strong>, mao
-                  ni ang mga lugar nga pwede.
-                </p>
-                {venues.map((v) => (
-                  <Option
-                    key={v.id}
-                    selected={draft.venueId === v.id}
-                    onSelect={() => choose('venueId', v.id)}
-                  >
-                    <p className="text-xl font-extrabold text-navy">{v.name}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-slate/80">{v.description}</p>
-                    <p className="mt-2 flex items-start gap-1.5 text-xs text-slate/60">
-                      <svg viewBox="0 0 24 24" className="mt-px size-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2">
-                        <path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z" />
-                        <circle cx="12" cy="10" r="2.4" />
-                      </svg>
-                      {v.location}
-                    </p>
-                    <ul className="mt-2.5 flex flex-wrap gap-1.5">
-                      {v.features.map((f) => (
-                        <li key={f} className="chip bg-cream text-slate">
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                  </Option>
-                ))}
-              </>
-            )}
+            {step === 1 &&
+              venues.map((v) => (
+                <Option
+                  key={v.id}
+                  selected={draft.venueId === v.id}
+                  onSelect={() => choose('venueId', v.id)}
+                >
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-lg font-semibold">{v.name}</span>
+                    <span className="shrink-0 text-xs opacity-45">{v.location}</span>
+                  </div>
+                  <p className="mt-1 text-sm opacity-65">{v.description}</p>
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {v.features.map((f) => (
+                      <span key={f} className="badge badge-xs border-0 bg-base-200 opacity-70">
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </Option>
+              ))}
 
             {step === 2 &&
               FOOD.map((f) => (
@@ -200,16 +181,11 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
                   selected={draft.foodId === f.id}
                   onSelect={() => choose('foodId', f.id)}
                 >
-                  <p className="text-xl font-extrabold text-navy">{f.name}</p>
-                  <p className="mt-0.5 text-sm font-medium text-gold">{f.tagline}</p>
-                  <ul className="mt-2.5 space-y-1">
+                  <span className="text-lg font-semibold">{f.name}</span>
+                  <p className="mt-0.5 text-sm opacity-65">{f.tagline}</p>
+                  <ul className="mt-2 space-y-0.5 text-xs opacity-55">
                     {f.details.map((d) => (
-                      <li key={d} className="flex gap-2 text-sm text-slate/80">
-                        <span aria-hidden className="text-sun">
-                          ◆
-                        </span>
-                        {d}
-                      </li>
+                      <li key={d}>{d}</li>
                     ))}
                   </ul>
                 </Option>
@@ -222,20 +198,17 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
                   selected={draft.paletteId === p.id}
                   onSelect={() => choose('paletteId', p.id)}
                 >
-                  <div className="flex items-center gap-3.5">
-                    <div className="flex shrink-0 overflow-hidden rounded-xl shadow-sm ring-1 ring-navy/10">
+                  <div className="flex items-center gap-3">
+                    <div className="flex shrink-0 overflow-hidden rounded-selector">
                       {p.swatches.map((hex) => (
-                        <span
-                          key={hex}
-                          className="block size-9"
-                          style={{ backgroundColor: hex }}
-                          title={hex}
-                        />
+                        <span key={hex} className="block size-7" style={{ backgroundColor: hex }} />
                       ))}
                     </div>
+                    <div className="min-w-0">
+                      <span className="block font-semibold">{p.name}</span>
+                      <span className="block truncate text-xs opacity-55">{p.description}</span>
+                    </div>
                   </div>
-                  <p className="mt-3 text-xl font-extrabold text-navy">{p.name}</p>
-                  <p className="mt-0.5 text-sm text-slate/70">{p.description}</p>
                 </Option>
               ))}
 
@@ -246,47 +219,29 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
                   selected={draft.attending === a.id}
                   onSelect={() => choose('attending', a.id)}
                 >
-                  <p className="text-xl font-extrabold text-navy">{a.label}</p>
-                  <p className="mt-0.5 text-sm text-slate/70">{a.sublabel}</p>
+                  <span className="text-lg font-semibold">{a.label}</span>
                 </Option>
               ))}
           </div>
-
-          {isLast && (
-            <p className="mt-5 text-center text-xs leading-relaxed text-slate/60">
-              Dili pa ni final. The committee decides once everyone has voted — you can change
-              your answer until then.
-            </p>
-          )}
         </div>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-navy/8 bg-alice/90 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
-        <div className="mx-auto max-w-lg">
+      <div className="fixed inset-x-0 bottom-0 z-20 bg-gradient-to-t from-base-100 via-base-100 to-transparent px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-6">
+        <div className="mx-auto max-w-md">
           {error && (
-            <p
-              role="alert"
-              className="mb-2.5 rounded-xl bg-gold/15 px-3.5 py-2.5 text-sm font-medium leading-relaxed text-slate"
-            >
+            <div role="alert" className="alert alert-error mb-3 py-2.5 text-sm">
               {error}
-            </p>
+            </div>
           )}
 
           <button
             type="button"
             disabled={!answered || pending || !open}
             onClick={() => (isLast ? submit() : setStep((s) => s + 1))}
-            className="w-full rounded-2xl bg-navy px-6 py-4 text-base font-extrabold text-butter shadow-lg transition active:scale-[0.985] disabled:cursor-not-allowed disabled:bg-navy/25 disabled:text-paper/80 disabled:shadow-none"
+            className="btn btn-primary btn-lg btn-block rounded-field"
           >
-            {!open
-              ? 'Sirado na ang botohan'
-              : pending
-                ? 'Gipadala…'
-                : isLast
-                  ? 'I-submit ang boto'
-                  : answered
-                    ? 'Sunod →'
-                    : 'Pili usa'}
+            {pending && <span className="loading loading-spinner loading-sm" />}
+            {!open ? 'Voting closed' : isLast ? 'Submit' : 'Next'}
           </button>
         </div>
       </div>
@@ -308,16 +263,12 @@ function Option({
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      data-selected={selected}
-      className="card relative block w-full p-4 text-left"
+      className={`relative w-full rounded-box border p-4 text-left transition-all duration-150 ${
+        selected
+          ? 'border-primary bg-primary/[0.06] ring-2 ring-primary'
+          : 'border-base-300 hover:border-base-content/25'
+      }`}
     >
-      {selected && (
-        <span className="pop absolute right-3.5 top-3.5 grid size-6 place-items-center rounded-full bg-navy text-butter">
-          <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m4 12.5 5.2 5.2L20 7" />
-          </svg>
-        </span>
-      )}
       {children}
     </button>
   )

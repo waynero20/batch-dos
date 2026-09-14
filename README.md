@@ -1,4 +1,4 @@
-# Asa na' ta? — Batch DOS Reunion
+# Batch DOS Reunion
 
 A voting app for the batch reunion. Members open one link, find their name, and answer
 four questions plus attendance. Ballots are written straight into the `Votes` tab of the
@@ -11,7 +11,7 @@ Design and decisions: [`docs/superpowers/specs/2026-09-14-batch-dos-reunion-voti
 | Route | What it does |
 |---|---|
 | `/` | Roster picker — search 73 names, voted ones show a ✓ |
-| `/vote` | Five screens: date → venue → food → palette → attendance |
+| `/vote` | Five screens: date → venue → food → dress code → attendance |
 | `/done` | Confirmation and the dress-code card |
 | `/results/<RESULTS_SECRET>` | Committee tally. Any other secret 404s. |
 
@@ -56,6 +56,16 @@ The workbook must be shared with `GOOGLE_SERVICE_ACCOUNT_EMAIL` as **Editor**.
 
 Edit the **Attendees** tab, then run `pnpm seed` and redeploy. That script is the single
 origin for both the picker's name list and the Votes tab's rows, so the two cannot drift.
+
+## Design
+
+daisyUI 5 on Tailwind 4. The theme lives in `app/globals.css` as a single `reunion`
+theme built from the deck's colours converted to oklch. Navy is reserved for primary
+actions so body text does not compete with them; the accent yellow is deliberately
+unused in the UI chrome and appears only in the dress-code swatches.
+
+Copy is English and kept short on purpose — the deck's Bisaya headings were dropped
+from the interface. Nothing but `lib/ballot.ts` needs editing to change wording.
 
 ## Notes
 

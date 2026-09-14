@@ -7,63 +7,41 @@ export default async function DonePage({
   searchParams: Promise<{ name?: string }>
 }) {
   const { name } = await searchParams
-  const firstName = name?.split(',')[1]?.trim() ?? name ?? ''
+  const firstName = name?.split(',')[1]?.trim()
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col justify-center px-5 py-12">
-      <div className="step-in text-center">
-        <span className="pop mx-auto grid size-16 place-items-center rounded-full bg-navy text-butter">
-          <svg viewBox="0 0 24 24" className="size-8" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-6 py-14">
+      <div className="rise">
+        <span className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-content">
+          <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <path d="m4 12.5 5.2 5.2L20 7" />
           </svg>
         </span>
 
-        <h1 className="display mt-6 text-[clamp(2.5rem,13vw,3.75rem)] text-navy">
-          Salamat{firstName && ','}
-          <br />
-          <em>{firstName || 'kaayo'}!</em>
+        <h1 className="h-display mt-5 text-3xl">
+          Thanks{firstName ? `, ${firstName}` : ''}.
         </h1>
-
-        <p className="mx-auto mt-4 max-w-xs text-pretty leading-relaxed text-slate">
-          Narecord na imong boto. Ang committee mao’y modesisyon once nakaboto na ang tanan.
+        <p className="mt-2.5 text-[0.95rem] leading-relaxed opacity-60">
+          Your vote is in. The committee decides once everyone has voted.
         </p>
       </div>
 
-      <section className="tape card mt-9 p-5 text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate/55">
-          Dress code
-        </p>
-        <p className="display mt-2 text-2xl text-navy">
-          any shade of
-          <br />
-          blue, white, or <em>yellow</em>
-        </p>
+      <div className="divider my-8 opacity-40" />
 
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          {PALETTES.flatMap((p) => p.swatches).map((hex, i) => (
-            <span
-              key={`${hex}-${i}`}
-              className="size-6 rounded-md shadow-sm ring-1 ring-navy/10"
-              style={{ backgroundColor: hex }}
-              title={hex}
-            />
+      <section className="rise">
+        <h2 className="text-xs font-medium uppercase tracking-[0.18em] opacity-45">Dress code</h2>
+        <p className="mt-2 text-lg font-semibold">Any shade of blue, white, or yellow</p>
+        <div className="mt-3 flex flex-wrap gap-1">
+          {[...new Set(PALETTES.flatMap((p) => p.swatches))].map((hex) => (
+            <span key={hex} className="size-5 rounded-selector" style={{ backgroundColor: hex }} />
           ))}
         </div>
-        <p className="mt-3 text-xs text-slate/60">
-          Final palette follows whichever the batch picks.
-        </p>
+        <p className="mt-3 text-xs opacity-45">Final palette follows whichever the batch picks.</p>
       </section>
 
-      <Link
-        href="/"
-        className="mt-7 rounded-2xl border-2 border-navy/15 bg-paper px-6 py-3.5 text-center font-bold text-navy transition hover:border-navy/35"
-      >
-        Balik sa listahan
+      <Link href="/" className="btn btn-outline btn-block mt-10 rounded-field">
+        Back to the list
       </Link>
-
-      <p className="mt-4 text-center text-xs text-slate/55">
-        Nakalimtan og usab? Pilia lang imong ngalan pag-usab.
-      </p>
     </main>
   )
 }

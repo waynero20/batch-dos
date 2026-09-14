@@ -17,14 +17,13 @@ export const TRACK_LABEL: Record<Track, string> = {
 export type DateOption = {
   id: string
   label: string
-  sublabel: string
   track: Track
 }
 
 export const DATES = [
-  { id: 'dec-26', label: 'December 26', sublabel: 'Biyernes sa Pasko', track: 'province' },
-  { id: 'jan-2', label: 'January 2', sublabel: 'Human sa Bag-ong Tuig', track: 'province' },
-  { id: 'jan-9', label: 'January 9', sublabel: 'Ikaduhang semana', track: 'city' },
+  { id: 'dec-26', label: 'December 26', track: 'province' },
+  { id: 'jan-2', label: 'January 2', track: 'province' },
+  { id: 'jan-9', label: 'January 9', track: 'city' },
 ] as const satisfies readonly DateOption[]
 
 export type VenueOption = {
@@ -41,35 +40,33 @@ export const VENUES = [
     id: 'purita-farms',
     name: 'Purita Farms',
     track: 'province',
-    description:
-      'Vacation house with a pool and a pickleball court. Has rooms for an overnight stay and a working kitchen.',
-    location: 'Barangay Bangkal Poblacion, San Remigio',
-    features: ['Pool', 'Pickleball court', 'Overnight rooms', 'Working kitchen'],
+    description: 'Vacation house with a pool and a pickleball court.',
+    location: 'San Remigio',
+    features: ['Pool', 'Pickleball', 'Sleeps over', 'Kitchen'],
   },
   {
     id: 'bakhawan-beach-home',
     name: 'Bakhawan Beach Home',
     track: 'province',
-    description:
-      'Beach house with a pickleball court. Has rooms for an overnight stay and a working kitchen. Also has a pool table.',
-    location: 'Barangay Bakhawan, Daanbantayan',
-    features: ['Beachfront', 'Pickleball court', 'Overnight rooms', 'Working kitchen', 'Pool table'],
+    description: 'Beach house with a pickleball court and a pool table.',
+    location: 'Daanbantayan',
+    features: ['Beachfront', 'Pickleball', 'Sleeps over', 'Kitchen'],
   },
   {
     id: 'island-hopping',
     name: 'Island Hopping',
     track: 'city',
-    description: 'Island hopping in Lapu-Lapu. Can fit up to 60 people.',
-    location: 'Lapu-Lapu City',
-    features: ['Boat for up to 60 pax', 'Island stops', 'Day trip'],
+    description: 'A day on the water, island to island.',
+    location: 'Lapu-Lapu',
+    features: ['Fits 60', 'Day trip'],
   },
   {
     id: 'providence-townhomes',
     name: 'Providence Townhomes',
     track: 'city',
-    description: '4-level townhome with rooms for overnight stay.',
-    location: 'Providence Street, Cebu City',
-    features: ['4 levels', 'Overnight rooms', 'In the city'],
+    description: 'Four-level townhome with rooms for the night.',
+    location: 'Cebu City',
+    features: ['Four levels', 'Sleeps over', 'In the city'],
   },
 ] as const satisfies readonly VenueOption[]
 
@@ -85,38 +82,32 @@ export type FoodOption = {
 export const FOOD = [
   {
     id: 'bilao-packages',
-    name: 'Food Packages / Bilao',
-    tagline: 'Lechon, bilao and full catering service',
+    name: 'Packages & Bilao',
+    tagline: 'Lechon, bilao, full catering',
     details: [
-      'Packages A–G · ₱3,000–₱15,000 · good for 15–40 pax',
-      'Whole lechon, lechon belly, puso and 3–4 dishes',
-      'Bilao ₱1,200–₱3,000 · good for 10–25 pax',
-      'Catering ₱250 / ₱300 / ₱350 per pax',
-      'Includes buffet set-up, tables and chairs',
+      'Packages ₱3,000–15,000 · 15–40 pax',
+      'Bilao ₱1,200–3,000 · 10–25 pax',
+      'Catering ₱250–350 a head, tables and chairs in',
     ],
   },
   {
     id: 'rodmers',
-    name: "Rodmer's Lechon & Bellychon",
-    tagline: 'Food trays, flat tray pricing',
+    name: "Rodmer's Lechon",
+    tagline: 'Flat tray pricing',
     details: [
-      'Chicken and poultry · ₱1,200 per tray',
-      'Pork · ₱1,200 per tray',
-      'Seafood · ₱1,200 per tray',
-      'Pasta, noodles and vegetables · ₱700 per tray',
-      'Sto. Niño Village, Poblacion, Medellin, Cebu',
+      'Chicken, pork, seafood · ₱1,200 a tray',
+      'Pasta and noodles · ₱700 a tray',
+      'Medellin, Cebu',
     ],
   },
   {
     id: 'food-trays',
     name: 'Food Trays',
-    tagline: 'Itemised menu, pick per dish',
+    tagline: 'Itemised, pick per dish',
     details: [
-      'Small · good for 10–15 pax',
-      'Medium · good for 20–25 pax',
-      'Large · good for 40–50 pax',
-      'Pork, beef, seafood, chicken, noodles',
-      'Desserts from ₱120 per tub',
+      'Small ₱300–1,000 · 10–15 pax',
+      'Medium ₱500–2,000 · 20–25 pax',
+      'Large ₱1,000–3,000 · 40–50 pax',
     ],
   },
 ] as const satisfies readonly FoodOption[]
@@ -160,13 +151,12 @@ export const PALETTES = [
 export type AttendanceOption = {
   id: string
   label: string
-  sublabel: string
 }
 
 export const ATTENDANCE = [
-  { id: 'yes', label: 'Oo, apil ko!', sublabel: "I'm in" },
-  { id: 'maybe', label: 'Dili pa sure', sublabel: 'Not sure yet' },
-  { id: 'no', label: 'Dili ko maka-apil', sublabel: "I can't make it" },
+  { id: 'yes', label: "I'm in" },
+  { id: 'maybe', label: 'Not sure yet' },
+  { id: 'no', label: "Can't make it" },
 ] as const satisfies readonly AttendanceOption[]
 
 export type DateId = (typeof DATES)[number]['id']

@@ -160,18 +160,26 @@ not stored. Client-side filtering is a convenience; the server is the authority.
 
 ## 7. Design language
 
-Taken from the proposal deck rather than invented.
+> **Revised 2026-09-14 after first review.** The original direction below reproduced the
+> deck's scrapbook collage and its bilingual Bisaya/English copy. In review that read as
+> over-decorated and over-written, so the interface was rebuilt on daisyUI with English-only,
+> minimal copy. The deck's colours survive; its texture and voice do not.
 
-- **Colour** — navy `#0A1680` / `#224668`, butter yellow `#FEE14E` / `#FBEDB0`,
-  alice blue `#EFF8FF`, blanc cassé `#FCFDFF`. Expressed as oklch CSS variables with
-  semantic names.
-- **Texture** — scrapbook collage: kraft paper, tape, paper clips, grid paper, hand-drawn
-  stars, halftone grain.
-- **Type** — bold condensed sans headlines mixing roman and italic, as the slides do.
-  Bisaya headline with a small English subtitle beneath.
-- **Motion** — CSS keyframes and Tailwind transitions only. Card lift on select, slide
-  between steps. No animation library.
-- **Layout** — mobile-first, one question per screen, large tap targets, progress dots.
+**Current direction**
+
+- **Components** — daisyUI 5 on Tailwind 4. One custom `reunion` theme in `app/globals.css`.
+- **Colour** — the deck's palette converted to oklch. Navy is reserved for primary actions;
+  body text is a near-black with a cool cast so the two do not compete. The accent yellow
+  appears only in dress-code swatches, never in UI chrome.
+- **Type** — Inter alone. Weight and negative tracking carry the headings; no display face.
+- **Copy** — English, short, one question per screen. No subtitles restating the heading.
+- **Motion** — one 260ms rise on step change. Nothing else.
+- **Layout** — mobile-first, single column, sticky progress header and action bar.
+
+**Superseded**
+
+Scrapbook collage (kraft, tape, paper clips, grain), a bold condensed display face mixing
+roman and italic, and Bisaya headings with English subtitles beneath.
 
 ## 8. Testing
 

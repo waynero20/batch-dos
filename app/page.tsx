@@ -21,32 +21,29 @@ export default async function Home() {
   const voted = await votedNames()
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-5 pb-10 pt-10">
-      <header className="mb-8 text-center">
-        <span className="chip mx-auto bg-navy text-butter">9 years later</span>
-
-        <h1 className="display mt-4 text-[clamp(3.4rem,19vw,5.5rem)] text-navy">
-          Asa na’
-          <br />
-          <em>ta?</em>
-        </h1>
-
-        <p className="mx-auto mt-5 max-w-xs text-pretty text-[0.95rem] leading-relaxed text-slate">
-          Tabangi mi pagdesisyon. Pilia ang petsa, lugar, pagkaon ug kolor — unya kita-kita
-          ta.
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-6 py-14">
+      <header className="rise">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] opacity-45">
+          Nine years later
         </p>
-        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-slate/65">
-          Four questions, about two minutes. Nothing is final until the batch has voted.
+        <h1 className="h-display mt-2 text-4xl">Batch DOS Reunion</h1>
+        <p className="mt-3 text-[0.95rem] leading-relaxed opacity-60">
+          Four questions. Help us decide.
         </p>
       </header>
 
-      <section className="tape card p-5">
+      <div className="divider my-7 opacity-40" />
+
+      <section className="rise flex-1">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold">Who are you?</h2>
+          <span className="text-xs tabular-nums opacity-45">
+            {voted.length}/{ROSTER.length} voted
+          </span>
+        </div>
+
         <RosterPicker roster={ROSTER} voted={voted} open={votingOpen()} />
       </section>
-
-      <footer className="mt-8 text-center text-xs text-slate/55">
-        Batch DOS · your answer can be changed until voting closes
-      </footer>
     </main>
   )
 }

@@ -58,7 +58,7 @@ export async function submitBallot(input: unknown): Promise<SubmitResult> {
         labelOf(VENUES, ballot.venueId, (v) => v.name),
         labelOf(FOOD, ballot.foodId, (f) => f.name),
         labelOf(PALETTES, ballot.paletteId, (p) => p.name),
-        labelOf(ATTENDANCE, ballot.attending, (a) => a.sublabel),
+        labelOf(ATTENDANCE, ballot.attending, (a) => a.label),
       ],
     ])
 
