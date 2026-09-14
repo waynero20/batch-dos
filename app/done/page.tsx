@@ -18,25 +18,25 @@ export default async function DonePage({
           </svg>
         </span>
 
-        <h1 className="h-display mt-5 text-3xl">
-          Thanks{firstName ? `, ${firstName}` : ''}.
+        <h1 className="h-display mt-6 text-[2.75rem]">
+          Thanks{firstName ? <>, <em className="italic">{firstName}</em></> : ''}.
         </h1>
-        <p className="mt-2.5 text-[0.95rem] leading-relaxed opacity-60">
+        <p className="mt-3 text-[0.95rem] leading-relaxed opacity-55">
           Your vote is in. The committee decides once everyone has voted.
         </p>
       </div>
 
-      <div className="divider my-8 opacity-40" />
+      <div className="divider my-9 opacity-30" />
 
       <section className="rise">
-        <h2 className="text-xs font-medium uppercase tracking-[0.18em] opacity-45">Dress code</h2>
-        <p className="mt-2 text-lg font-semibold">Any shade of blue, white, or yellow</p>
+        <h2 className="eyebrow">Dress code</h2>
+        <p className="h-display mt-2.5 text-2xl">Any shade of blue, white, or yellow</p>
         <div className="mt-3 flex flex-wrap gap-1">
           {[...new Set(PALETTES.flatMap((p) => p.swatches))].map((hex) => (
             <span key={hex} className="size-5 rounded-selector" style={{ backgroundColor: hex }} />
           ))}
         </div>
-        <p className="mt-3 text-xs opacity-45">Final palette follows whichever the batch picks.</p>
+        <p className="mt-3 text-xs opacity-40">Final palette follows whichever the batch picks.</p>
       </section>
 
       <Link href="/" className="btn btn-outline btn-block mt-10 rounded-field">

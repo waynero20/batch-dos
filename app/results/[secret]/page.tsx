@@ -30,14 +30,12 @@ export default async function ResultsPage({ params }: { params: Promise<{ secret
   return (
     <main className="mx-auto w-full max-w-xl px-6 py-14">
       <header>
-        <p className="text-xs font-medium uppercase tracking-[0.18em] opacity-45">
-          Committee only
-        </p>
-        <h1 className="h-display mt-2 text-3xl">Results</h1>
+        <p className="eyebrow">Committee only</p>
+        <h1 className="h-display mt-2.5 text-[2.75rem]">Results</h1>
 
         {/* A hero number, not a chart — one value has no shape worth plotting. */}
         <div className="mt-6 flex items-baseline gap-2">
-          <span className="text-5xl font-semibold tabular-nums tracking-tight">{cast.length}</span>
+          <span className="h-display text-6xl tabular-nums">{cast.length}</span>
           <span className="opacity-45">of {ROSTER.length} voted</span>
         </div>
         <progress
@@ -63,9 +61,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ secret
           const max = Math.max(1, ...q.data.map((d) => d.count))
           return (
             <section key={q.title}>
-              <h2 className="text-xs font-medium uppercase tracking-[0.18em] opacity-45">
-                {q.title}
-              </h2>
+              <h2 className="eyebrow">{q.title}</h2>
 
               {/* One measure, one series — identity comes from the row label, so every
                   bar carries the same hue rather than implying categories that aren't there. */}
@@ -96,9 +92,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ secret
       </div>
 
       <section className="mt-12">
-        <h2 className="text-xs font-medium uppercase tracking-[0.18em] opacity-45">
-          Not yet voted · {missing.length}
-        </h2>
+        <h2 className="eyebrow">Not yet voted · {missing.length}</h2>
         {missing.length === 0 ? (
           <p className="mt-3 font-medium">Everyone has voted.</p>
         ) : (

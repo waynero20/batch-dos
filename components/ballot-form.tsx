@@ -13,6 +13,7 @@ import {
   type DateId,
 } from '@/lib/ballot'
 import { submitBallot } from '@/app/actions'
+import { Stepper } from './stepper'
 
 type Draft = {
   dateId?: string
@@ -23,18 +24,22 @@ type Draft = {
 }
 
 const STEPS = [
-  { key: 'dateId', title: 'When should we meet?' },
-  { key: 'venueId', title: 'Where should we go?' },
-  { key: 'foodId', title: 'What should we eat?' },
-  { key: 'paletteId', title: 'What should we wear?' },
-  { key: 'attending', title: 'Are you coming?' },
+  { key: 'dateId', short: 'When', title: 'When should we meet?' },
+  { key: 'venueId', short: 'Where', title: 'Where should we go?' },
+  { key: 'foodId', short: 'Food', title: 'What should we eat?' },
+  { key: 'paletteId', short: 'Wear', title: 'What should we wear?' },
+  { key: 'attending', short: 'RSVP', title: 'Are you coming?' },
 ] as const
+
+const STEP_LABELS = STEPS.map((s) => s.short)
 
 const storageKey = (name: string) => `batch-dos-ballot:${name}`
 
 export function BallotForm({ name, open }: { name: string; open: boolean }) {
   const router = useRouter()
   const [step, setStep] = useState(0)
+  // Answered steps stay reachable from the stepper; unanswered ones do not.
+  const [furthest, setFurthest] = useState(0)
   const [draft, setDraft] = useState<Draft>({})
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -59,6 +64,11 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
 
   const track = draft.dateId ? trackForDate(draft.dateId as DateId) : null
   const venues = useMemo(() => (track ? venuesForTrack(track) : []), [track])
+
+  const goTo = (next: number) => {
+    setStep(next)
+    setFurthest((f) => Math.max(f, next))
+  }
 
   const current = STEPS[step]!
   const answered = Boolean(draft[current.key as keyof Draft])
@@ -99,37 +109,34 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-20 bg-base-100/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-md items-center gap-3 px-6 py-4">
-          <button
-            type="button"
-            onClick={() => (step === 0 ? router.push('/') : setStep((s) => s - 1))}
-            className="btn btn-ghost btn-sm btn-square -ml-2"
-            aria-label={step === 0 ? 'Back to the name list' : 'Previous question'}
-          >
-            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 6-6 6 6 6" />
-            </svg>
-          </button>
+      <header className="sticky top-0 z-20 border-b border-base-300/70 bg-base-100/90 backdrop-blur-md">
+        <div className="mx-auto max-w-md px-5 pb-3 pt-3.5">
+          <div className="mb-2.5 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => (step === 0 ? router.push('/') : goTo(step - 1))}
+              className="btn btn-ghost btn-xs -ml-2 gap-1 font-normal opacity-55"
+            >
+              <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m15 6-6 6 6 6" />
+              </svg>
+              {step === 0 ? 'All names' : 'Back'}
+            </button>
+            <span className="max-w-[9rem] truncate text-xs opacity-45">{name}</span>
+          </div>
 
-          <span className="text-xs tabular-nums opacity-45">
-            {step + 1}/{STEPS.length}
-          </span>
-
-          <progress
-            className="progress progress-primary h-1 flex-1"
-            value={step + (answered ? 1 : 0)}
-            max={STEPS.length}
-            aria-label="Progress"
+          <Stepper
+            labels={STEP_LABELS}
+            current={step}
+            furthest={furthest}
+            onJump={goTo}
           />
-
-          <span className="max-w-[6.5rem] truncate text-xs opacity-45">{name}</span>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-md flex-1 px-6 pb-36 pt-4">
         <div key={step} className="rise">
-          <h1 className="h-display text-[1.75rem]">{current.title}</h1>
+          <h1 className="h-display text-[2.125rem]">{current.title}</h1>
 
           {step === 1 && (
             <p className="mt-2 text-sm opacity-55">{TRACK_LABEL[track!]} options only.</p>
@@ -237,7 +244,7 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
           <button
             type="button"
             disabled={!answered || pending || !open}
-            onClick={() => (isLast ? submit() : setStep((s) => s + 1))}
+            onClick={() => (isLast ? submit() : goTo(step + 1))}
             className="btn btn-primary btn-lg btn-block rounded-field"
           >
             {pending && <span className="loading loading-spinner loading-sm" />}

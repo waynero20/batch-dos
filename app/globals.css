@@ -3,43 +3,45 @@
   themes: false;
 }
 
-/* Brand colours from the proposal deck, converted to oklch. */
+/**
+ * One accent, everything else neutral.
+ *
+ * The deck's navy is the only chromatic colour in the interface. Surfaces and borders
+ * are true greys rather than tinted blues, so the accent has nothing to compete with.
+ * The deck's yellow survives only in the dress-code swatches, which are raw hex.
+ */
 @plugin "daisyui/theme" {
   name: 'reunion';
   default: true;
   color-scheme: light;
 
   --color-base-100: oklch(1 0 0);
-  --color-base-200: oklch(0.968 0.004 265);
-  --color-base-300: oklch(0.915 0.006 265);
-  /* Near-black with a cool cast: navy stays reserved for primary actions,
-     so body text does not compete with them. */
-  --color-base-content: oklch(0.23 0.022 265);
+  --color-base-200: oklch(0.971 0 0);
+  --color-base-300: oklch(0.918 0 0);
+  --color-base-content: oklch(0.21 0 0);
 
-  --color-primary: oklch(0.2963 0.1708 266.55); /* navy */
+  --color-primary: oklch(0.2963 0.1708 266.55); /* #0A1680 — the one accent */
   --color-primary-content: oklch(1 0 0);
 
-  --color-secondary: oklch(0.3844 0.0717 248.98); /* slate */
+  --color-secondary: oklch(0.44 0 0);
   --color-secondary-content: oklch(1 0 0);
-
-  --color-accent: oklch(0.9086 0.1622 97.81); /* sun yellow */
-  --color-accent-content: oklch(0.2963 0.1708 266.55);
-
-  --color-neutral: oklch(0.3844 0.0717 248.98);
+  --color-accent: oklch(0.2963 0.1708 266.55);
+  --color-accent-content: oklch(1 0 0);
+  --color-neutral: oklch(0.21 0 0);
   --color-neutral-content: oklch(1 0 0);
 
-  --color-info: oklch(0.7675 0.1067 265.62);
-  --color-info-content: oklch(0.2963 0.1708 266.55);
+  --color-info: oklch(0.44 0 0);
+  --color-info-content: oklch(1 0 0);
   --color-success: oklch(0.2963 0.1708 266.55);
   --color-success-content: oklch(1 0 0);
-  --color-warning: oklch(0.697 0.1418 81.89);
+  --color-warning: oklch(0.55 0 0);
   --color-warning-content: oklch(1 0 0);
-  --color-error: oklch(0.577 0.19 27.3);
+  --color-error: oklch(0.505 0.18 27);
   --color-error-content: oklch(1 0 0);
 
-  --radius-selector: 0.5rem;
-  --radius-field: 0.625rem;
-  --radius-box: 0.875rem;
+  --radius-selector: 0.375rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
   --size-selector: 0.25rem;
   --size-field: 0.28rem;
   --border: 1px;
@@ -49,6 +51,7 @@
 
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
 }
 
 html {
@@ -61,13 +64,41 @@ body {
 }
 
 @layer components {
-  /* Tight, confident headings — weight and tracking do the work, not ornament. */
+  /* Editorial serif for anything that speaks; Inter handles everything that
+     merely labels. The optical size of Instrument Serif wants slightly tighter
+     tracking and a line-height near 1. */
   .h-display {
-    font-weight: 680;
-    letter-spacing: -0.033em;
-    line-height: 1.02;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.014em;
+    line-height: 1.04;
     text-wrap: balance;
   }
+
+  /* Small caps-ish section labels — Inter, wide, quiet. */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.42;
+  }
+}
+
+/* daisyUI's default step marks are 2rem discs on a 0.5rem rail — too heavy for a
+   five-step header on a phone. Halve the rail and shrink the disc so the stepper
+   reads as navigation rather than as the page's main graphic. */
+.steps .step:after {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+/* Only the rail's thickness is ours — its width and offset stay daisyUI's, or the
+   connector overshoots the final step. */
+.steps .step:before {
+  height: 2px;
 }
 
 @keyframes rise {

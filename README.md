@@ -59,10 +59,22 @@ origin for both the picker's name list and the Votes tab's rows, so the two cann
 
 ## Design
 
-daisyUI 5 on Tailwind 4. The theme lives in `app/globals.css` as a single `reunion`
-theme built from the deck's colours converted to oklch. Navy is reserved for primary
-actions so body text does not compete with them; the accent yellow is deliberately
-unused in the UI chrome and appears only in the dress-code swatches.
+daisyUI 5 on Tailwind 4, one `reunion` theme in `app/globals.css`.
+
+**Colour is deliberately minimal.** The deck's navy `#0A1680` is the only chromatic
+value in the interface; every surface, border and muted text is a true grey rather than
+a tinted blue, so the accent has nothing to compete with. The deck's yellow survives
+only in the dress-code swatches, which are raw hex and not theme tokens.
+
+**Type is Instrument Serif over Inter.** The serif carries anything that speaks —
+page titles, questions, the tally's hero number — at 400 weight and slightly negative
+tracking. Inter handles everything that merely labels: options, badges, the stepper,
+tabular figures. The `.h-display` and `.eyebrow` classes are the only two typographic
+primitives; use them rather than restating sizes inline.
+
+**The stepper** is daisyUI `steps` with its rail thinned to 2px and its discs cut to
+1.5rem — its width and offset are left alone, since overriding those makes the
+connector overshoot the final step. Answered steps are tappable to jump back.
 
 Copy is English and kept short on purpose — the deck's Bisaya headings were dropped
 from the interface. Nothing but `lib/ballot.ts` needs editing to change wording.

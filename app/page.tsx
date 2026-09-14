@@ -23,20 +23,22 @@ export default async function Home() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-6 py-14">
       <header className="rise">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] opacity-45">
-          Nine years later
-        </p>
-        <h1 className="h-display mt-2 text-4xl">Batch DOS Reunion</h1>
-        <p className="mt-3 text-[0.95rem] leading-relaxed opacity-60">
+        <p className="eyebrow">Nine years later</p>
+        <h1 className="h-display mt-3 text-[3.25rem]">
+          Batch DOS
+          <br />
+          <em className="italic">Reunion</em>
+        </h1>
+        <p className="mt-4 text-[0.95rem] leading-relaxed opacity-55">
           Four questions. Help us decide.
         </p>
       </header>
 
-      <div className="divider my-7 opacity-40" />
+      <div className="divider my-8 opacity-30" />
 
       <section className="rise flex-1">
         <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold">Who are you?</h2>
+          <h2 className="text-sm font-medium">Who are you?</h2>
           <span className="text-xs tabular-nums opacity-45">
             {voted.length}/{ROSTER.length} voted
           </span>
