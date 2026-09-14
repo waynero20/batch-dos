@@ -171,10 +171,13 @@ not stored. Client-side filtering is a convenience; the server is the authority.
 - **Colour** — the deck's palette converted to oklch. Navy is reserved for primary actions;
   body text is a near-black with a cool cast so the two do not compete. The accent yellow
   appears only in dress-code swatches, never in UI chrome.
-- **Type** — Inter alone. Weight and negative tracking carry the headings; no display face.
+- **Type** — Bricolage Grotesque for display over DM Sans for UI. Bricolage has no
+  italic; never set it in `<em>`.
 - **Copy** — English, short, one question per screen. No subtitles restating the heading.
 - **Motion** — one 260ms rise on step change. Nothing else.
-- **Layout** — mobile-first, single column, sticky progress header and action bar.
+- **Layout** — mobile-first, single column, sticky stepper header and action bar.
+- **Imagery** — the deck's cover collage is the landing hero and carries the batch's
+  wordmark. Venue cards lead with a photo under a gradient bearing the venue name.
 
 **Superseded**
 

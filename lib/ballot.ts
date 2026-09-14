@@ -26,6 +26,8 @@ export const DATES = [
   { id: 'jan-9', label: 'January 9', track: 'city' },
 ] as const satisfies readonly DateOption[]
 
+export type VenuePhoto = { src: string; alt: string }
+
 export type VenueOption = {
   id: string
   name: string
@@ -33,6 +35,12 @@ export type VenueOption = {
   description: string
   location: string
   features: readonly string[]
+  /**
+   * First photo is the card's hero. Purita Farms and Bakhawan use photos supplied by
+   * the committee; the two city venues use crops lifted from the proposal deck, which
+   * is the only imagery that exists for them so far and is noticeably lower resolution.
+   */
+  photos: readonly VenuePhoto[]
 }
 
 export const VENUES = [
@@ -43,6 +51,12 @@ export const VENUES = [
     description: 'Vacation house with a pool and a pickleball court.',
     location: 'San Remigio',
     features: ['Pool', 'Pickleball', 'Sleeps over', 'Kitchen'],
+    photos: [
+      {
+        src: '/venues/purita-farms-1.jpg',
+        alt: 'Aerial view of Purita Farms at sunset — a green pagoda roof above a curved pool deck, surrounded by dense trees.',
+      },
+    ],
   },
   {
     id: 'bakhawan-beach-home',
@@ -51,6 +65,20 @@ export const VENUES = [
     description: 'Beach house with a pickleball court and a pool table.',
     location: 'Daanbantayan',
     features: ['Beachfront', 'Pickleball', 'Sleeps over', 'Kitchen'],
+    photos: [
+      {
+        src: '/venues/bakhawan-beach-home-1.jpg',
+        alt: 'Turquoise shallows off Bakhawan Beach Home, with an open-air hut on the sand under trees.',
+      },
+      {
+        src: '/venues/bakhawan-beach-home-2.jpg',
+        alt: 'The beach house seen from the sand — a long covered porch shaded by trees.',
+      },
+      {
+        src: '/venues/bakhawan-beach-home-3.jpg',
+        alt: 'A pool table on the tiled deck beneath a bamboo roof, open to the sea.',
+      },
+    ],
   },
   {
     id: 'island-hopping',
@@ -59,6 +87,12 @@ export const VENUES = [
     description: 'A day on the water, island to island.',
     location: 'Lapu-Lapu',
     features: ['Fits 60', 'Day trip'],
+    photos: [
+      {
+        src: '/venues/island-hopping-1.jpg',
+        alt: 'The deck of the boat under a shade sail, open sea and clear sky beyond.',
+      },
+    ],
   },
   {
     id: 'providence-townhomes',
@@ -67,6 +101,12 @@ export const VENUES = [
     description: 'Four-level townhome with rooms for the night.',
     location: 'Cebu City',
     features: ['Four levels', 'Sleeps over', 'In the city'],
+    photos: [
+      {
+        src: '/venues/providence-townhomes-1.jpg',
+        alt: 'The townhome interior — open-plan kitchen and dining area with a stone feature wall.',
+      },
+    ],
   },
 ] as const satisfies readonly VenueOption[]
 
@@ -170,3 +210,12 @@ export const trackForDate = (id: DateId): Track =>
 
 export const venuesForTrack = (track: Track): readonly VenueOption[] =>
   VENUES.filter((v) => v.track === track)
+
+/** "Purita Farms or Bakhawan Beach Home" — shown under a date so the choice it
+ *  commits you to is visible before you make it. */
+export const venueSummaryForTrack = (track: Track): string => {
+  const names = venuesForTrack(track).map((v) => v.name)
+  return names.length <= 1
+    ? (names[0] ?? '')
+    : `${names.slice(0, -1).join(', ')} or ${names.at(-1)}`
+}

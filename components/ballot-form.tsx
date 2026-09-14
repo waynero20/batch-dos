@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
   ATTENDANCE,
@@ -8,11 +9,14 @@ import {
   FOOD,
   PALETTES,
   TRACK_LABEL,
+  VENUES,
   trackForDate,
+  venueSummaryForTrack,
   venuesForTrack,
   type DateId,
 } from '@/lib/ballot'
 import { submitBallot } from '@/app/actions'
+import { ProgramTimeline } from './program-timeline'
 import { Stepper } from './stepper'
 
 type Draft = {
@@ -23,16 +27,17 @@ type Draft = {
   attending?: string
 }
 
+/** `field` is undefined for steps that show something rather than ask something. */
 const STEPS = [
-  { key: 'dateId', short: 'When', title: 'When should we meet?' },
-  { key: 'venueId', short: 'Where', title: 'Where should we go?' },
-  { key: 'foodId', short: 'Food', title: 'What should we eat?' },
-  { key: 'paletteId', short: 'Wear', title: 'What should we wear?' },
-  { key: 'attending', short: 'RSVP', title: 'Are you coming?' },
+  { field: 'dateId', short: 'When', title: 'When should we meet?' },
+  { field: 'venueId', short: 'Where', title: 'Where should we go?' },
+  { field: 'foodId', short: 'Food', title: 'What should we eat?' },
+  { field: 'paletteId', short: 'Wear', title: 'What should we wear?' },
+  { field: undefined, short: 'Day', title: 'Here’s the day' },
+  { field: 'attending', short: 'RSVP', title: 'Are you coming?' },
 ] as const
 
 const STEP_LABELS = STEPS.map((s) => s.short)
-
 const storageKey = (name: string) => `batch-dos-ballot:${name}`
 
 export function BallotForm({ name, open }: { name: string; open: boolean }) {
@@ -65,14 +70,14 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
   const track = draft.dateId ? trackForDate(draft.dateId as DateId) : null
   const venues = useMemo(() => (track ? venuesForTrack(track) : []), [track])
 
+  const current = STEPS[step]!
+  const answered = current.field ? Boolean(draft[current.field]) : true
+  const isLast = step === STEPS.length - 1
+
   const goTo = (next: number) => {
     setStep(next)
     setFurthest((f) => Math.max(f, next))
   }
-
-  const current = STEPS[step]!
-  const answered = Boolean(draft[current.key as keyof Draft])
-  const isLast = step === STEPS.length - 1
 
   const choose = (key: keyof Draft, value: string) => {
     setError(null)
@@ -125,24 +130,27 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
             <span className="max-w-[9rem] truncate text-xs opacity-45">{name}</span>
           </div>
 
-          <Stepper
-            labels={STEP_LABELS}
-            current={step}
-            furthest={furthest}
-            onJump={goTo}
-          />
+          <Stepper labels={STEP_LABELS} current={step} furthest={furthest} onJump={goTo} />
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-md flex-1 px-6 pb-36 pt-4">
+      <main className="mx-auto w-full max-w-md flex-1 px-5 pb-36 pt-5">
         <div key={step} className="rise">
           <h1 className="h-display text-[2.125rem]">{current.title}</h1>
 
           {step === 1 && (
-            <p className="mt-2 text-sm opacity-55">{TRACK_LABEL[track!]} options only.</p>
+            <p className="mt-2 text-sm opacity-55">
+              {TRACK_LABEL[track!]} options, because you picked{' '}
+              {DATES.find((d) => d.id === draft.dateId)?.label}.
+            </p>
+          )}
+          {step === 4 && (
+            <p className="mt-2 text-sm opacity-55">
+              Same plan wherever we land. One last question after this.
+            </p>
           )}
 
-          <div className="mt-6 space-y-2.5">
+          <div className={step === 4 ? 'mt-7' : 'mt-6 space-y-2.5'}>
             {step === 0 &&
               DATES.map((d) => (
                 <Option
@@ -150,12 +158,17 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
                   selected={draft.dateId === d.id}
                   onSelect={() => choose('dateId', d.id)}
                 >
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-baseline justify-between gap-3">
                     <span className="text-lg font-semibold">{d.label}</span>
                     <span className="badge badge-sm border-0 bg-base-200 font-medium opacity-70">
                       {TRACK_LABEL[d.track]}
                     </span>
                   </div>
+                  {/* Naming the venues here makes the consequence of the date visible
+                      before it is chosen, rather than a surprise on the next screen. */}
+                  <p className="mt-1 text-[0.8125rem] leading-relaxed opacity-50">
+                    {venueSummaryForTrack(d.track)}
+                  </p>
                 </Option>
               ))}
 
@@ -165,12 +178,27 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
                   key={v.id}
                   selected={draft.venueId === v.id}
                   onSelect={() => choose('venueId', v.id)}
+                  media={
+                    <div className="relative aspect-[16/10] w-full bg-base-200">
+                      <Image
+                        src={v.photos[0]!.src}
+                        alt={v.photos[0]!.alt}
+                        fill
+                        sizes="(max-width: 448px) 100vw, 416px"
+                        className="object-cover"
+                      />
+                      <div
+                        aria-hidden
+                        className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/75 to-transparent"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 p-3.5">
+                        <p className="h-display text-xl text-white">{v.name}</p>
+                        <p className="text-xs text-white/75">{v.location}</p>
+                      </div>
+                    </div>
+                  }
                 >
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-lg font-semibold">{v.name}</span>
-                    <span className="shrink-0 text-xs opacity-45">{v.location}</span>
-                  </div>
-                  <p className="mt-1 text-sm opacity-65">{v.description}</p>
+                  <p className="text-sm leading-relaxed opacity-70">{v.description}</p>
                   <div className="mt-2.5 flex flex-wrap gap-1.5">
                     {v.features.map((f) => (
                       <span key={f} className="badge badge-xs border-0 bg-base-200 opacity-70">
@@ -178,6 +206,16 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
                       </span>
                     ))}
                   </div>
+
+                  {v.photos.length > 1 && (
+                    <div className="mt-3 grid grid-cols-2 gap-1.5">
+                      {v.photos.slice(1).map((p) => (
+                        <div key={p.src} className="relative aspect-[3/2] overflow-hidden rounded-selector bg-base-200">
+                          <Image src={p.src} alt={p.alt} fill sizes="200px" className="object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </Option>
               ))}
 
@@ -204,36 +242,42 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
                   key={p.id}
                   selected={draft.paletteId === p.id}
                   onSelect={() => choose('paletteId', p.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex shrink-0 overflow-hidden rounded-selector">
+                  media={
+                    <div className="flex h-14 w-full">
                       {p.swatches.map((hex) => (
-                        <span key={hex} className="block size-7" style={{ backgroundColor: hex }} />
+                        <span key={hex} className="flex-1" style={{ backgroundColor: hex }} />
                       ))}
                     </div>
-                    <div className="min-w-0">
-                      <span className="block font-semibold">{p.name}</span>
-                      <span className="block truncate text-xs opacity-55">{p.description}</span>
-                    </div>
-                  </div>
+                  }
+                >
+                  <span className="font-semibold">{p.name}</span>
+                  <p className="mt-0.5 text-[0.8125rem] opacity-55">{p.description}</p>
                 </Option>
               ))}
 
-            {step === 4 &&
-              ATTENDANCE.map((a) => (
-                <Option
-                  key={a.id}
-                  selected={draft.attending === a.id}
-                  onSelect={() => choose('attending', a.id)}
-                >
-                  <span className="text-lg font-semibold">{a.label}</span>
-                </Option>
-              ))}
+            {step === 4 && <ProgramTimeline />}
+
+            {step === 5 && (
+              <>
+                <Summary draft={draft} />
+                <div className="mt-6 space-y-2.5">
+                  {ATTENDANCE.map((a) => (
+                    <Option
+                      key={a.id}
+                      selected={draft.attending === a.id}
+                      onSelect={() => choose('attending', a.id)}
+                    >
+                      <span className="text-lg font-semibold">{a.label}</span>
+                    </Option>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 bg-gradient-to-t from-base-100 via-base-100 to-transparent px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-6">
+      <div className="fixed inset-x-0 bottom-0 z-20 bg-gradient-to-t from-base-100 via-base-100 to-transparent px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-6">
         <div className="mx-auto max-w-md">
           {error && (
             <div role="alert" className="alert alert-error mb-3 py-2.5 text-sm">
@@ -248,7 +292,7 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
             className="btn btn-primary btn-lg btn-block rounded-field"
           >
             {pending && <span className="loading loading-spinner loading-sm" />}
-            {!open ? 'Voting closed' : isLast ? 'Submit' : 'Next'}
+            {!open ? 'Voting closed' : isLast ? 'Submit' : step === 4 ? 'Looks good' : 'Next'}
           </button>
         </div>
       </div>
@@ -256,13 +300,36 @@ export function BallotForm({ name, open }: { name: string; open: boolean }) {
   )
 }
 
+/** What they picked, restated just before they commit to coming. */
+function Summary({ draft }: { draft: Draft }) {
+  const rows = [
+    ['When', DATES.find((d) => d.id === draft.dateId)?.label],
+    ['Where', VENUES.find((v) => v.id === draft.venueId)?.name],
+    ['Food', FOOD.find((f) => f.id === draft.foodId)?.name],
+    ['Wear', PALETTES.find((p) => p.id === draft.paletteId)?.name],
+  ] as const
+
+  return (
+    <dl className="divide-y divide-base-300/70 rounded-box border border-base-300">
+      {rows.map(([label, value]) => (
+        <div key={label} className="flex items-baseline justify-between gap-3 px-4 py-2.5">
+          <dt className="text-xs uppercase tracking-wider opacity-40">{label}</dt>
+          <dd className="truncate text-sm font-medium">{value ?? '—'}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
 function Option({
   selected,
   onSelect,
+  media,
   children,
 }: {
   selected: boolean
   onSelect: () => void
+  media?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
@@ -270,13 +337,14 @@ function Option({
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`relative w-full rounded-box border p-4 text-left transition-all duration-150 ${
+      className={`block w-full overflow-hidden rounded-box border text-left transition-all duration-150 ${
         selected
-          ? 'border-primary bg-primary/[0.06] ring-2 ring-primary'
+          ? 'border-primary ring-2 ring-primary'
           : 'border-base-300 hover:border-base-content/25'
       }`}
     >
-      {children}
+      {media}
+      <div className={`p-4 ${selected ? 'bg-primary/[0.05]' : ''}`}>{children}</div>
     </button>
   )
 }

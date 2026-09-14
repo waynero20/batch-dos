@@ -1,18 +1,16 @@
 import type { Metadata, Viewport } from 'next'
-import { Instrument_Serif, Inter } from 'next/font/google'
+import { Bricolage_Grotesque, DM_Sans } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-dm-sans',
   display: 'swap',
 })
 
-const instrument = Instrument_Serif({
+const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
-  weight: '400',
-  style: ['normal', 'italic'],
-  variable: '--font-instrument',
+  variable: '--font-bricolage',
   display: 'swap',
 })
 
@@ -35,7 +33,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme="reunion">
-      <body className={`${inter.variable} ${instrument.variable}`}>{children}</body>
+      <body className={`${dmSans.variable} ${bricolage.variable}`}>{children}</body>
     </html>
   )
 }

@@ -50,8 +50,8 @@
 }
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-dm-sans), ui-sans-serif, sans-serif;
 }
 
 html {
@@ -64,18 +64,18 @@ body {
 }
 
 @layer components {
-  /* Editorial serif for anything that speaks; Inter handles everything that
-     merely labels. The optical size of Instrument Serif wants slightly tighter
-     tracking and a line-height near 1. */
+  /* Bricolage Grotesque for anything that speaks; DM Sans handles everything that
+     merely labels. Bricolage is drawn tight, so it takes negative tracking well and
+     wants a line-height close to 1 at display sizes. */
   .h-display {
-    font-family: var(--font-serif);
-    font-weight: 400;
-    letter-spacing: -0.014em;
-    line-height: 1.04;
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
     text-wrap: balance;
   }
 
-  /* Small caps-ish section labels — Inter, wide, quiet. */
+  /* Small caps-ish section labels — DM Sans, wide, quiet. */
   .eyebrow {
     font-size: 0.6875rem;
     font-weight: 500;

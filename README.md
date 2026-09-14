@@ -11,7 +11,7 @@ Design and decisions: [`docs/superpowers/specs/2026-09-14-batch-dos-reunion-voti
 | Route | What it does |
 |---|---|
 | `/` | Roster picker — search 73 names, voted ones show a ✓ |
-| `/vote` | Five screens: date → venue → food → dress code → attendance |
+| `/vote` | Six screens: date → venue → food → dress code → the day's programme → attendance |
 | `/done` | Confirmation and the dress-code card |
 | `/results/<RESULTS_SECRET>` | Committee tally. Any other secret 404s. |
 
@@ -66,18 +66,39 @@ value in the interface; every surface, border and muted text is a true grey rath
 a tinted blue, so the accent has nothing to compete with. The deck's yellow survives
 only in the dress-code swatches, which are raw hex and not theme tokens.
 
-**Type is Instrument Serif over Inter.** The serif carries anything that speaks —
-page titles, questions, the tally's hero number — at 400 weight and slightly negative
-tracking. Inter handles everything that merely labels: options, badges, the stepper,
-tabular figures. The `.h-display` and `.eyebrow` classes are the only two typographic
-primitives; use them rather than restating sizes inline.
+**Type is Bricolage Grotesque over DM Sans.** Bricolage carries anything that speaks —
+page titles, questions, venue names over photos, the tally's hero number — at 600 weight
+with negative tracking. DM Sans handles everything that merely labels: options, badges,
+the stepper, tabular figures. The `.h-display` and `.eyebrow` classes are the only two
+typographic primitives; use them rather than restating sizes inline. Bricolage ships no
+true italic, so never set it in `<em>` — the browser will synthesise a slanted fake.
 
 **The stepper** is daisyUI `steps` with its rail thinned to 2px and its discs cut to
 1.5rem — its width and offset are left alone, since overriding those makes the
 connector overshoot the final step. Answered steps are tappable to jump back.
 
 Copy is English and kept short on purpose — the deck's Bisaya headings were dropped
-from the interface. Nothing but `lib/ballot.ts` needs editing to change wording.
+from the interface, and the batch's own wordmark now arrives as the cover image instead.
+Nothing but `lib/ballot.ts` needs editing to change wording.
+
+## Photos
+
+`public/venues/<venue-id>-N.jpg`, wired to venues through the `photos` field in
+`lib/ballot.ts`. The first photo is the card's hero and gets a gradient with the venue
+name over it; any others appear as a thumbnail strip below the description.
+
+**Purita Farms and Bakhawan Beach Home use committee photos. The two city venues do
+not have any** — their images are crops lifted out of the proposal deck and are
+noticeably lower resolution (560×480 and 720×460). Replace them when real photos exist:
+drop the file in `public/venues/` and add it to that venue's `photos` array.
+
+## The programme
+
+`lib/program.ts`, transcribed from the workbook's Program tab. Times there are Excel
+day-fractions and are converted to fixed strings rather than read live. **Two values in
+the sheet are wrong** and are corrected in that file with a comment explaining each —
+Game No. 4 ends before it starts, and Chill & Drinks ends at `0.0`. Worth fixing at the
+source.
 
 ## Notes
 

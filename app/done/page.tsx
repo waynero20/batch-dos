@@ -19,7 +19,7 @@ export default async function DonePage({
         </span>
 
         <h1 className="h-display mt-6 text-[2.75rem]">
-          Thanks{firstName ? <>, <em className="italic">{firstName}</em></> : ''}.
+          Thanks{firstName ? `, ${firstName}` : ''}.
         </h1>
         <p className="mt-3 text-[0.95rem] leading-relaxed opacity-55">
           Your vote is in. The committee decides once everyone has voted.
