@@ -34,8 +34,16 @@ yarn-error.log*
 .env
 .env*.local
 .env.production
-*-service-account.json
-gcp-credentials.json
+
+# Google Cloud service-account keys.
+# Google names downloaded keys <project>-<hash>.json, which no generic pattern
+# catches, so deny every root-level .json and re-allow the ones the app needs.
+/*.json
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+!/components.json
+!/vercel.json
 
 # vercel
 .vercel

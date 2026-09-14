@@ -1,0 +1,166 @@
+@import 'tailwindcss';
+
+/* Palette transcribed from the proposal deck and converted to oklch.
+   Hex equivalents are kept in comments so the deck stays checkable against the app. */
+@theme {
+  --color-navy: oklch(0.2963 0.1708 266.55); /* #0A1680 */
+  --color-slate: oklch(0.3844 0.0717 248.98); /* #224668 */
+  --color-teal: oklch(0.3935 0.0801 239.04); /* #104B6C */
+  --color-ink: oklch(0.2614 0.104 276.44); /* #1A1A55 */
+  --color-sun: oklch(0.9086 0.1622 97.81); /* #FEE14E */
+  --color-butter: oklch(0.9429 0.0792 96.73); /* #FBEDB0 */
+  --color-gold: oklch(0.697 0.1418 81.89); /* #C9930A */
+  --color-apricot: oklch(0.8237 0.1418 78.37); /* #F7B94C */
+  --color-sky: oklch(0.7675 0.1067 265.62); /* #93B2F8 */
+  --color-alice: oklch(0.9744 0.0134 240.95); /* #EFF8FF */
+  --color-paper: oklch(0.9939 0.0029 264.54); /* #FCFDFF */
+  --color-cream: oklch(0.9454 0.0599 101.29); /* #F5EFC1 */
+  --color-stone: oklch(0.9029 0.0098 72.65); /* #E3DED8 */
+  --color-sand: oklch(0.8169 0.0412 69.63); /* #D5BFA7 */
+
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1.125rem;
+  --shadow-card: 0 1px 2px oklch(0.2963 0.1708 266.55 / 0.06), 0 8px 24px -12px oklch(0.2963 0.1708 266.55 / 0.28);
+  --shadow-lift: 0 2px 4px oklch(0.2963 0.1708 266.55 / 0.08), 0 18px 36px -16px oklch(0.2963 0.1708 266.55 / 0.42);
+}
+
+/* The deck commits to a single light look, so the app does too rather than
+   inventing a dark palette the committee never approved. */
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-alice);
+  color: var(--color-navy);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Paper grain. Sits behind everything and never intercepts taps. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.32'/%3E%3C/svg%3E");
+}
+
+@layer components {
+  .display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+    text-wrap: balance;
+  }
+
+  /* The deck sets one word of each headline in italic. */
+  .display em {
+    font-style: italic;
+    font-weight: 800;
+  }
+
+  .tape {
+    position: relative;
+  }
+  .tape::after {
+    content: '';
+    position: absolute;
+    top: -0.7rem;
+    left: 50%;
+    width: 5.5rem;
+    height: 1.4rem;
+    translate: -50% 0;
+    rotate: -2.5deg;
+    background: oklch(0.9086 0.1622 97.81 / 0.55);
+    box-shadow: inset 0 0 0 1px oklch(0.697 0.1418 81.89 / 0.25);
+  }
+
+  .card {
+    background: var(--color-paper);
+    border: 1.5px solid oklch(0.2963 0.1708 266.55 / 0.1);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transition:
+      border-color 160ms ease,
+      box-shadow 220ms ease,
+      translate 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  @media (hover: hover) {
+    .card:hover {
+      translate: 0 -3px;
+      box-shadow: var(--shadow-lift);
+      border-color: oklch(0.2963 0.1708 266.55 / 0.28);
+    }
+  }
+
+  .card[data-selected='true'] {
+    border-color: var(--color-navy);
+    border-width: 2.5px;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .card:active {
+    translate: 0 0;
+    scale: 0.993;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.step-in {
+  animation: step-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes pop {
+  0% { scale: 0.7; opacity: 0 }
+  60% { scale: 1.08 }
+  100% { scale: 1; opacity: 1 }
+}
+
+.pop {
+  animation: pop 340ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .card:hover { translate: none }
+}
