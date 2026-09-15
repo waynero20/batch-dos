@@ -176,10 +176,12 @@ body {
 .rise-2 { animation: rise 260ms cubic-bezier(0.22, 0.85, 0.3, 1) 120ms both; }
 .rise-3 { animation: rise 260ms cubic-bezier(0.22, 0.85, 0.3, 1) 180ms both; }
 
+/* The intro is exempt: its timeline is built from animations, and it ships its own
+   fade-only reduced-motion version (components/intro/intro.css). */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :not(.intro-root, .intro-root *),
+  :not(.intro-root, .intro-root *)::before,
+  :not(.intro-root, .intro-root *)::after {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;

@@ -1,0 +1,557 @@
+/**
+ * The intro. Every timing here comes from custom properties set per scene from
+ * lib/intro/config.ts: --d (scene length), --in (fade in), --out (fade out), --delay.
+ * Only opacity and transform animate.
+ */
+
+.intro-root {
+  --night: #080706;
+  --paper: #f3eee6;
+  --paper-dim: rgb(243 238 230 / 0.86);
+  --year: #d9b77f;
+  --navy: #0a1680;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  background: var(--night);
+  color: var(--paper);
+  font-family: var(--font-newsreader), Georgia, 'Times New Roman', serif;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: opacity var(--leave, 300ms) ease;
+}
+
+.intro-root[data-phase='leaving'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Returning visitor, before hydration: never paint the curtain. */
+html[data-intro='seen'] .intro-root[data-phase='pending'] {
+  display: none;
+}
+
+html[data-intro='play']:has(.intro-root) {
+  overflow: hidden;
+}
+
+/* A breath of film grain over everything. Static, so it costs one paint. */
+.intro-root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.04;
+  background-size: 180px 180px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.intro-stage,
+.intro-scenes {
+  position: absolute;
+  inset: 0;
+}
+
+.intro-stage[data-paused] *,
+.intro-stage[data-paused] *::before,
+.intro-stage[data-paused] *::after {
+  animation-play-state: paused !important;
+}
+
+/* ---------- Scene shell ---------- */
+
+.intro-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.9rem, 3dvh, 1.6rem);
+  padding: calc(env(safe-area-inset-top) + 4rem) calc(env(safe-area-inset-right) + 1.5rem)
+    calc(env(safe-area-inset-bottom) + 4rem) calc(env(safe-area-inset-left) + 1.5rem);
+  text-align: center;
+}
+
+.intro-fades {
+  animation: intro-fade-out var(--out) cubic-bezier(0.4, 0, 0.6, 1) calc(var(--d) - var(--out)) forwards;
+}
+
+.intro-reveal {
+  animation: intro-fade-in var(--in) cubic-bezier(0.25, 0.1, 0.25, 1) var(--delay, 0ms) both;
+}
+
+@keyframes intro-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes intro-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ---------- Memory: narration, photo, year ---------- */
+
+.intro-narration {
+  margin: 0;
+  max-width: 25ch;
+  font-size: clamp(1.1875rem, 5.2vw, 1.75rem);
+  line-height: 1.4;
+  text-wrap: balance;
+  color: var(--paper);
+}
+
+.intro-memory[data-variant='text'] .intro-narration {
+  max-width: 17ch;
+  font-size: clamp(1.75rem, 8.2vw, 3.25rem);
+  line-height: 1.24;
+  letter-spacing: -0.012em;
+}
+
+.intro-year {
+  margin: 0;
+  font-size: clamp(2.5rem, 13vw, 4.75rem);
+  font-weight: 300;
+  line-height: 0.9;
+  letter-spacing: 0.08em;
+  /* The tracking trails the last digit; pull it back so the year stays optically centred. */
+  margin-right: -0.08em;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--year);
+}
+
+/* ---------- The print ---------- */
+
+.intro-print {
+  --print-max-w: min(74vw, 400px);
+  --print-max-h: 42dvh;
+
+  position: relative;
+  margin: 0;
+  padding: clamp(6px, 1.9vw, 11px);
+  border-radius: 2px;
+  background: linear-gradient(165deg, #f4eee3, #e4d9c6);
+  box-shadow:
+    0 1px 1px rgb(0 0 0 / 0.3),
+    0 12px 24px -8px rgb(0 0 0 / 0.6),
+    0 34px 60px -24px rgb(0 0 0 / 0.7);
+  transform: rotate(var(--tilt));
+}
+
+.intro-print-surface {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #3a342e;
+}
+
+.intro-print img {
+  display: block;
+  width: min(var(--print-max-w), calc(var(--print-max-h) * var(--ratio)));
+  height: auto;
+  aspect-ratio: var(--ratio);
+  object-fit: cover;
+}
+
+/* Age, gently: a soft vignette and the faintest warm cast. No filters. */
+.intro-print-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(125% 95% at 50% 42%, transparent 58%, rgb(40 24 8 / 0.3) 100%),
+    linear-gradient(rgb(255 200 130 / 0.07), rgb(255 200 130 / 0.07));
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
+}
+
+.intro-memory[data-variant='photo'] .intro-print {
+  --print-max-w: min(80vw, 460px);
+  --print-max-h: 60dvh;
+}
+
+@media (max-height: 640px) and (orientation: portrait) {
+  .intro-memory[data-variant='full'] .intro-print { --print-max-h: 34dvh; }
+}
+
+/* A print being set down: it fades up and settles into its lean. */
+.intro-develop {
+  animation:
+    intro-fade-in var(--in) cubic-bezier(0.25, 0.1, 0.25, 1) var(--delay, 0ms) both,
+    intro-settle calc(var(--in) * 1.8) cubic-bezier(0.2, 0.7, 0.2, 1) var(--delay, 0ms) both;
+}
+
+@keyframes intro-settle {
+  from { transform: translateY(12px) rotate(calc(var(--tilt) + 2.5deg)) scale(1.02); }
+  to { transform: translateY(0) rotate(var(--tilt)) scale(1); }
+}
+
+/* Landscape phones: photo on the left, words on the right. */
+@media (orientation: landscape) and (max-height: 540px) {
+  .intro-scene {
+    padding-top: calc(env(safe-area-inset-top) + 2.75rem);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 2.75rem);
+  }
+
+  .intro-memory[data-variant='full'] {
+    display: grid;
+    grid-template-columns: auto minmax(0, 30ch);
+    grid-template-areas: 'photo year' 'photo text';
+    grid-template-rows: 1fr 1fr;
+    column-gap: clamp(1.5rem, 5vw, 3rem);
+    row-gap: 0.9rem;
+    align-content: center;
+    justify-content: center;
+    text-align: left;
+  }
+  .intro-memory[data-variant='full'] .intro-year { grid-area: year; align-self: end; margin-right: 0; }
+  .intro-memory[data-variant='full'] .intro-print { grid-area: photo; align-self: center; --print-max-h: 68dvh; --print-max-w: 44vw; }
+  .intro-memory[data-variant='full'] .intro-narration { grid-area: text; align-self: start; }
+  .intro-memory[data-variant='photo'] .intro-print { --print-max-h: 70dvh; }
+  .intro-montage .intro-print { --print-max-h: 68dvh; --print-max-w: 50vw; }
+}
+
+/* ---------- Montage: a pile of prints ---------- */
+
+.intro-stack {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.intro-card {
+  grid-area: 1 / 1;
+  animation: intro-recede 700ms cubic-bezier(0.5, 0, 0.75, 0.4) var(--recede-at) forwards;
+}
+
+.intro-card[data-top] {
+  animation: none;
+}
+
+.intro-montage .intro-print {
+  --print-max-w: min(76vw, 440px);
+  --print-max-h: 56dvh;
+}
+
+.intro-card-print {
+  transform: translateZ(0) rotate(var(--tilt));
+  animation: intro-deal 650ms cubic-bezier(0.16, 0.84, 0.3, 1) var(--deal-at) both;
+}
+
+/* The card underneath darkens as the next one covers it. */
+.intro-card-print::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  animation: intro-cover 600ms ease-out var(--covered-at) forwards;
+}
+
+.intro-card[data-top] .intro-card-print::before {
+  animation: none;
+}
+
+@keyframes intro-deal {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--fx), var(--fy), 0) rotate(var(--fr)) scale(1.07);
+  }
+  35% { opacity: 1; }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(var(--tilt)) scale(1);
+  }
+}
+
+@keyframes intro-cover {
+  to { opacity: 0.42; }
+}
+
+@keyframes intro-recede {
+  to {
+    opacity: 0;
+    transform: translate3d(var(--rx), 9%, 0) rotate(calc(var(--fr) * -0.6)) scale(0.94);
+    visibility: hidden;
+  }
+}
+
+/* ---------- Quiet lines ---------- */
+
+.intro-lines-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1rem, 3.4dvh, 1.75rem);
+}
+
+.intro-line {
+  margin: 0;
+  text-wrap: balance;
+}
+
+.intro-lines[data-tone='whisper'] .intro-line {
+  font-size: clamp(1.875rem, 9vw, 3.5rem);
+  font-style: italic;
+  font-weight: 350;
+  letter-spacing: 0.01em;
+  color: var(--paper-dim);
+}
+
+/* Sized so each statement holds one line on a 360px phone: a statement broken mid-phrase
+   stops reading as one thought. Longer replacements still wrap, balanced. */
+.intro-lines[data-tone='reflect'] .intro-lines-stack {
+  gap: clamp(1.25rem, 4.2dvh, 2.25rem);
+}
+
+.intro-lines[data-tone='reflect'] .intro-line {
+  font-size: clamp(1.25rem, 5.4vw, 2.375rem);
+  line-height: 1.3;
+  color: var(--paper);
+}
+
+/* ---------- Names and the final line ---------- */
+
+.intro-phrase {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.intro-phrase-lead {
+  font-size: clamp(1.3125rem, 5.9vw, 2.25rem);
+  line-height: 1.3;
+  color: var(--paper-dim);
+}
+
+/* Exactly wide enough for "ang" in Newsreader (1.61em), so "si" → "ang" never re-centres
+   the phrase. Change this if the final connector changes. */
+.intro-connector {
+  display: inline-block;
+  min-width: 1.62em;
+  text-align: left;
+}
+
+.intro-connector-swap {
+  display: inline-grid;
+  justify-items: start;
+}
+
+.intro-connector-swap > * {
+  grid-area: 1 / 1;
+}
+
+.intro-connector-from {
+  animation: intro-fade-out 450ms ease-out forwards;
+}
+
+.intro-phrase-name {
+  display: block;
+  min-height: 1.15em;
+  font-size: clamp(2.5rem, 12.5vw, 5.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+  color: var(--paper);
+}
+
+.intro-name {
+  display: inline-block;
+}
+
+.intro-name.is-arriving {
+  animation: intro-name-in 170ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes intro-name-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.1em);
+  }
+}
+
+/* ---------- So tara! ---------- */
+
+/* Yellow pad paper: faint blue rules, a red margin line, a blank band at the top. */
+.intro-tara {
+  --m: clamp(2.25rem, 12vw, 5rem);
+  --rule: 2.125rem;
+  --pad: #f7dc5e;
+
+  color: var(--navy);
+  background-color: var(--pad);
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent calc(var(--m) - 1px),
+      rgb(206 62 62 / 0.5) calc(var(--m) - 1px),
+      rgb(206 62 62 / 0.5) calc(var(--m) + 1px),
+      transparent calc(var(--m) + 1px)
+    ),
+    radial-gradient(130% 100% at 50% 40%, transparent 60%, rgb(130 90 0 / 0.16) 100%),
+    linear-gradient(var(--pad) 0 5.5rem, transparent 5.5rem),
+    repeating-linear-gradient(180deg, transparent 0 calc(var(--rule) - 1px), rgb(40 76 170 / 0.2) calc(var(--rule) - 1px) var(--rule));
+  animation: intro-fade-in 550ms ease-out both;
+}
+
+.intro-tara-text {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-bricolage), var(--font-dm-sans), system-ui, sans-serif;
+  font-size: clamp(4.25rem, 23vw, 10rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+  transform: rotate(-4deg);
+  animation: intro-tara-in 750ms cubic-bezier(0.2, 0.9, 0.25, 1.12) 250ms both;
+}
+
+@keyframes intro-tara-in {
+  from {
+    opacity: 0;
+    transform: rotate(-8deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-4deg) scale(1);
+  }
+}
+
+.intro-tara-underline {
+  position: absolute;
+  left: 3%;
+  right: 1%;
+  bottom: -0.3em;
+  width: 96%;
+  height: 0.3em;
+  overflow: visible;
+  color: #cf3a3a;
+}
+
+.intro-tara-underline path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: intro-draw 600ms cubic-bezier(0.5, 0, 0.2, 1) 950ms forwards;
+}
+
+@keyframes intro-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ---------- Progress + skip ---------- */
+
+.intro-progress {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 1.75rem);
+  z-index: 10;
+  width: min(100% - 3rem, 18rem);
+  height: 1.5px;
+  translate: -50% 0;
+  overflow: hidden;
+  border-radius: 1px;
+  background: rgb(243 238 230 / 0.1);
+}
+
+.intro-progress > span {
+  display: block;
+  height: 100%;
+  background: rgb(243 238 230 / 0.45);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: intro-progress var(--d) linear forwards;
+}
+
+@keyframes intro-progress {
+  to { transform: scaleX(1); }
+}
+
+.intro-skip {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 0.5rem);
+  right: calc(env(safe-area-inset-right) + 0.5rem);
+  z-index: 10;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgb(243 238 230 / 0.6);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 200ms ease, opacity 250ms ease;
+}
+
+.intro-skip:hover,
+.intro-skip:focus-visible {
+  color: rgb(243 238 230 / 0.95);
+}
+
+.intro-skip:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: -6px;
+}
+
+.intro-root[data-phase='leaving'] .intro-skip {
+  opacity: 0;
+}
+
+.intro-stage[data-scene='tara'] .intro-skip,
+.intro-stage[data-scene='planohan'] .intro-skip { color: rgb(10 22 128 / 0.65); }
+.intro-stage[data-scene='tara'] .intro-skip:hover,
+.intro-stage[data-scene='tara'] .intro-skip:focus-visible,
+.intro-stage[data-scene='planohan'] .intro-skip:hover,
+.intro-stage[data-scene='planohan'] .intro-skip:focus-visible { color: var(--navy); }
+.intro-stage[data-scene='tara'] .intro-progress,
+.intro-stage[data-scene='planohan'] .intro-progress { background: rgb(10 22 128 / 0.12); }
+.intro-stage[data-scene='tara'] .intro-progress > span,
+.intro-stage[data-scene='planohan'] .intro-progress > span { background: rgb(10 22 128 / 0.5); }
+
+/* ---------- Reduced motion ----------
+   The same story, the same timing, told with fades only. No print moves, tilts in,
+   slides away or scales. Static lean is kept: it isn't motion. */
+@media (prefers-reduced-motion: reduce) {
+  .intro-develop {
+    animation: intro-fade-in var(--in) ease var(--delay, 0ms) both;
+  }
+
+  .intro-card-print {
+    transform: rotate(var(--tilt));
+    animation: intro-fade-in 450ms ease var(--deal-at) both;
+  }
+
+  .intro-card {
+    animation: intro-fade-out 450ms ease calc(var(--covered-at) + 300ms) forwards;
+  }
+
+  .intro-card-print::before,
+  .intro-name.is-arriving {
+    animation: none;
+  }
+
+  .intro-tara-text {
+    transform: rotate(-4deg);
+    animation: intro-fade-in 600ms ease 200ms both;
+  }
+
+  .intro-tara-underline path {
+    stroke-dashoffset: 0;
+    animation: intro-fade-in 500ms ease 700ms both;
+  }
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+<defs>
+<linearGradient id="g" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#90796f"/><stop offset="1" stop-color="#5f4c44"/></linearGradient>
+<radialGradient id="v" cx="0.5" cy="0.45" r="0.75"><stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.35"/></radialGradient>
+<filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="10"/><feColorMatrix values="0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.16 0"/></filter>
+</defs>
+<rect width="1200" height="900" fill="url(#g)"/>
+<g fill="#2b2622" fill-opacity="0.28"><circle cx="230" cy="558" r="77"/><rect x="111" y="654" width="237" height="324" rx="92"/><circle cx="483" cy="522" r="86"/><rect x="350" y="629" width="265" height="360" rx="103"/><circle cx="736" cy="597" r="68"/><rect x="631" y="682" width="209" height="285" rx="81"/><circle cx="949" cy="561" r="77"/><rect x="830" y="657" width="237" height="321" rx="92"/></g>
+<rect width="1200" height="900" filter="url(#n)"/>
+<rect width="1200" height="900" fill="url(#v)"/>
+<text x="50%" y="144" text-anchor="middle" font-family="Georgia, serif" font-size="50" letter-spacing="13" fill="#f3eee6" fill-opacity="0.72">MEMORY 04</text>
+<text x="50%" y="204" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="21" letter-spacing="2" fill="#f3eee6" fill-opacity="0.5">PLACEHOLDER · REPLACE IN lib/intro/config.ts</text>
+</svg>
