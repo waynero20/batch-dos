@@ -87,9 +87,26 @@ export function IdentityStep({
           </p>
         )}
 
-        <ul className="w-full">
+        {/*
+          * Keyed by the result set, so the rows remount — and the cascade replays —
+          * whenever the matches actually change. Keyed by name alone, a row that
+          * survived the next keystroke would keep its node and sit still while the
+          * others slid in.
+          *
+          * It also keeps each row's animation-delay fixed for that row's lifetime.
+          * Changing the delay on an animation mid-flight re-times it against a start
+          * that has not moved, which can drop a row back into its before-phase and
+          * blink it out for a frame.
+          */}
+        <ul key={results.join('|')} className="w-full">
           {results.map((name, i) => (
-            <li key={name}>
+            <li
+              key={name}
+              className="row-in"
+              // Each row follows the one above it. Capped so the sixth result is not
+              // still arriving after you have already read the first.
+              style={{ animationDelay: `${Math.min(i, 5) * 45}ms` }}
+            >
               <button
                 type="button"
                 onClick={() => onPick(name)}

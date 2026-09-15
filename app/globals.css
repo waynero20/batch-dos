@@ -151,6 +151,13 @@ body {
   }
 }
 
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+
 /* The outgoing screen pushes past the viewport as the next one comes up from
    underneath it, so choosing a date reads as moving into that choice. */
 @keyframes step-zoom-out {
@@ -179,6 +186,17 @@ body {
   /* Staggered so the eye lands on the question before the options resolve. */
   .si-1 { animation-delay: 30ms; }
   .si-2 { animation-delay: 120ms; }
+
+  /*
+   * A result arriving in the name list.
+   *
+   * Keyed by name, so a row that survives the next keystroke keeps its DOM node and
+   * stays put — only genuinely new rows animate. Narrowing "wa" to "wayne" therefore
+   * settles instead of re-running the whole cascade on every letter.
+   */
+  .row-in {
+    animation: row-in 300ms var(--ease-soft) both;
+  }
 
   /* The flow's one input. daisyUI's .input is a form control; this is the whole
      point of its screen, so it is built at that scale. */
