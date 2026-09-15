@@ -7,8 +7,16 @@ import { OptionCard } from '../option-card'
 
 /** Two venues per track, always — so each card owns half a wide screen or the whole
  *  of a phone. One `sizes` covers both, with no per-venue grading to drift. */
-const SIZES = '(max-width: 767px) 100vw, (max-width: 1279px) 46vw, 520px'
+const SIZES = '(max-width: 767px) 92vw, (max-width: 1279px) 46vw, 520px'
 
+/**
+ * The venue as a photograph, not a tile.
+ *
+ * The card is the picture: no white body, nothing cropped down to make room for a
+ * description that the feature list already covers. Name, place and what is there sit
+ * over a scrim at the foot of the image, which is the only part of the photo that can
+ * afford to carry type.
+ */
 export function WhereStep({
   venues,
   value,
@@ -21,17 +29,14 @@ export function WhereStep({
   return (
     <Deck
       items={venues}
-      label="Venues"
       cols="md:grid-cols-2"
       max="max-w-4xl"
-      height="h-[min(46dvh,22rem)]"
+      height="h-[min(54dvh,26rem)]"
       render={(v) => {
         const hero = v.photos[0]!
         return (
           <OptionCard selected={value === v.id} onSelect={() => onChoose(v.id)}>
-            {/* The photo takes whatever height is left after the body — that is what
-                keeps a tall phone and a short laptop on the same one screen. */}
-            <div className="relative min-h-0 flex-1 bg-base-200">
+            <div className="absolute inset-0">
               <Image
                 src={hero.src}
                 alt={hero.alt}
@@ -39,29 +44,34 @@ export function WhereStep({
                 priority
                 sizes={SIZES}
                 style={hero.focus ? { objectPosition: hero.focus } : undefined}
-                className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+                className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.05]"
               />
-              <div
-                aria-hidden
-                className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 to-transparent"
-              />
-              <div className="absolute inset-x-0 bottom-0 p-4">
-                <p className="h-display text-[1.375rem] text-white lg:text-[1.625rem]">{v.name}</p>
-                <p className="text-xs text-white/70">{v.location}</p>
-              </div>
             </div>
 
-            <div className="shrink-0 px-4 py-3.5">
-              <p className="line-clamp-2 text-[0.8125rem] leading-relaxed opacity-60">
-                {v.description}
+            {/* Deep enough to hold three lines of white type at the foot of any of the
+                four photos, two of which are bright sky. */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/90 via-black/55 to-transparent"
+            />
+
+            <div className="relative z-10 mt-auto w-full px-5 pb-5 pt-8">
+              <p className="h-display text-[1.5rem] leading-tight text-white lg:text-[1.875rem]">
+                {v.name}
               </p>
-              <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                {v.features.map((f) => (
-                  <span key={f} className="chip">
-                    {f}
+              <p className="mt-1 text-[0.8125rem] text-white/70 lg:text-sm">{v.location}</p>
+              {/* Each feature is its own nowrap span, so a narrow card breaks between
+                  them and never down the middle of "Sleeps over". */}
+              {/* Separated by space, not by a dot: with four features the line wraps
+                  on a phone, and any punctuation between them is left dangling at the
+                  break. Each feature stays nowrap so "Sleeps over" never splits. */}
+              <p className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.625rem] font-medium uppercase tracking-[0.14em] text-white/60 lg:text-[0.6875rem]">
+                {v.features.map((feature) => (
+                  <span key={feature} className="whitespace-nowrap">
+                    {feature}
                   </span>
                 ))}
-              </div>
+              </p>
             </div>
           </OptionCard>
         )
