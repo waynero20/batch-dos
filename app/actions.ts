@@ -1,14 +1,52 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { ATTENDANCE, DATES, FOOD, PALETTES, VENUES, trackForDate, TRACK_LABEL } from '@/lib/ballot'
-import type { DateId } from '@/lib/ballot'
+import {
+  ATTENDANCE,
+  DATES,
+  FOOD,
+  PALETTES,
+  VENUES,
+  draftFromLabels,
+  trackForDate,
+  TRACK_LABEL,
+} from '@/lib/ballot'
+import type { BallotDraft, DateId } from '@/lib/ballot'
 import { isMember } from '@/lib/roster'
 import { ballotSchema } from '@/lib/schema'
-import { VOTES_TAB, readVotes, writeRange } from '@/lib/sheets'
+import { VOTES_TAB, hasVoted, readVotes, writeRange } from '@/lib/sheets'
 import { votingOpen } from '@/lib/config'
 
 export type SubmitResult = { ok: true } | { ok: false; error: string }
+
+/** A ballot already on record, ready to be shown back to the member who cast it. */
+export type ExistingBallot = { votedAt: string; draft: BallotDraft }
+
+/**
+ * The ballot this member has already submitted, or null if they have not.
+ *
+ * Deliberately unauthenticated, like the rest of the flow: anyone who can open the
+ * link can type any name and read that member's answers. That is a real weakening of
+ * the committee-only results page, accepted so that changing your mind works from any
+ * device rather than only the phone you first voted on.
+ *
+ * A spreadsheet hiccup returns null rather than throwing — failing to prefill costs a
+ * member some retyping; failing to load the page costs their vote.
+ */
+export async function fetchBallot(memberName: string): Promise<ExistingBallot | null> {
+  if (!isMember(memberName)) return null
+
+  try {
+    const votes = await readVotes()
+    const row = votes.find((v) => v.name === memberName)
+    if (!row || !hasVoted(row)) return null
+
+    return { votedAt: row.votedAt, draft: draftFromLabels(row) }
+  } catch (err) {
+    console.error('[fetchBallot]', err)
+    return null
+  }
+}
 
 const labelOf = <T extends { id: string }>(xs: readonly T[], id: string, pick: (x: T) => string) => {
   const found = xs.find((x) => x.id === id)

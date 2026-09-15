@@ -485,3 +485,54 @@ export function monthIndexOf(dateId: DateId): number {
     (m) => m.year === d.getUTCFullYear() && m.month === d.getUTCMonth(),
   )
 }
+
+/* -------------------------------------------------------------------------- */
+/* Reading a ballot back                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Turn a row of the Votes tab back into a draft.
+ *
+ * The sheet deliberately stores labels rather than ids — the committee reads that tab
+ * by eye, and "bakhawan-beach-home" would make them do the translation by hand — so
+ * coming back the other way is a lookup by label.
+ *
+ * Anything that no longer matches is simply left unset. If the committee renames a
+ * venue, the member is asked that one question again rather than shown a wrong answer
+ * or a blank card, and the schema still refuses to store a ballot with a hole in it.
+ */
+export function draftFromLabels(row: {
+  date?: string
+  venue?: string
+  food?: string
+  palette?: string
+  attending?: string
+}): BallotDraft {
+  const match = <T extends { id: string }>(
+    options: readonly T[],
+    label: string | undefined,
+    labelOf: (option: T) => string,
+  ) => (label ? options.find((o) => labelOf(o) === label.trim())?.id : undefined)
+
+  const draft: BallotDraft = {}
+  const dateId = match(DATES, row.date, (d) => d.label)
+  const venueId = match(VENUES, row.venue, (v) => v.name)
+  const foodId = match(FOOD, row.food, (f) => f.name)
+  const paletteId = match(PALETTES, row.palette, (p) => p.name)
+  const attending = match(ATTENDANCE, row.attending, (a) => a.label)
+
+  if (dateId) draft.dateId = dateId
+  if (venueId) draft.venueId = venueId
+  if (foodId) draft.foodId = foodId
+  if (paletteId) draft.paletteId = paletteId
+  if (attending) draft.attending = attending
+
+  // A venue from the other track cannot survive a date change, and the schema would
+  // reject the pair anyway — drop it rather than carry it into the ballot.
+  if (draft.dateId && draft.venueId) {
+    const track = trackForDate(draft.dateId as DateId)
+    if (!venuesForTrack(track).some((v) => v.id === draft.venueId)) delete draft.venueId
+  }
+
+  return draft
+}

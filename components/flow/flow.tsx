@@ -14,7 +14,7 @@ import {
   venuesForTrack,
   type DateId,
 } from '@/lib/ballot'
-import { submitBallot } from '@/app/actions'
+import { fetchBallot, submitBallot } from '@/app/actions'
 import { Screen } from './screen'
 import { DayStep } from './steps/day'
 import { FoodStep } from './steps/food'
@@ -75,6 +75,8 @@ export function Flow({
   const zoomTimer = useRef<number | undefined>(undefined)
   const [draft, setDraft] = useState<BallotDraft>({})
   const [venueCleared, setVenueCleared] = useState(false)
+  /** Set once we know this member already has a ballot on record. */
+  const [votedAt, setVotedAt] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -91,6 +93,24 @@ export function Flow({
     // reload. The hash keeps the pathname and searchParams — and therefore the server
     // component — entirely out of it.
     window.history.pushState(null, '', `#${FLOW_STEPS[next]!.id}`)
+  }, [])
+
+  /**
+   * Pull in the ballot this member already submitted, if any.
+   *
+   * Runs alongside the flow rather than blocking it: tapping your name moves you on
+   * immediately and the recorded answers arrive a moment later. Anything already in
+   * the draft wins, so a choice made while this was in flight is never overwritten.
+   */
+  const loadExisting = useCallback((chosen: string) => {
+    void fetchBallot(chosen).then((existing) => {
+      if (!existing) return
+      setVotedAt(existing.votedAt)
+      setDraft((prev) => ({ ...existing.draft, ...prev }))
+      // A complete ballot unlocks every step, so changing one answer is one tap on
+      // the progress bar rather than a walk through all six questions.
+      setFurthest((f) => Math.max(f, reachedThrough(existing.draft)))
+    })
   }, [])
 
   // The back gesture walks the flow, not the site.
@@ -122,8 +142,9 @@ export function Flow({
     const saved = loadDraft(initialName)
     setDraft(saved)
     goTo(FIRST_QUESTION)
-    setFurthest((f) => Math.max(f, reachedThrough(saved)))
-  }, [initialName, goTo])
+    setFurthest(Math.max(FIRST_QUESTION, reachedThrough(saved)))
+    loadExisting(initialName)
+  }, [initialName, goTo, loadExisting])
 
   // Answers survive a closed tab or a dropped connection.
   useEffect(() => {
@@ -137,10 +158,14 @@ export function Flow({
 
   const pick = (chosen: string) => {
     setName(chosen)
+    setVotedAt(null)
     const saved = loadDraft(chosen)
     setDraft(saved)
     goTo(FIRST_QUESTION)
-    setFurthest((f) => Math.max(f, reachedThrough(saved)))
+    // Plain value, not a max: picking a different name must not inherit the reach of
+    // the one picked before it.
+    setFurthest(Math.max(FIRST_QUESTION, reachedThrough(saved)))
+    loadExisting(chosen)
   }
 
   const choose = (key: keyof BallotDraft, value: string) => {
@@ -191,7 +216,9 @@ export function Flow({
         } catch {
           /* not fatal */
         }
-        router.push(`/done?name=${encodeURIComponent(name)}`)
+        router.push(
+          `/done?name=${encodeURIComponent(name)}${votedAt ? '&changed=1' : ''}`,
+        )
       } else {
         setError(result.error)
       }
@@ -246,7 +273,15 @@ export function Flow({
               className="cta w-full max-w-sm"
             >
               {pending && <span className="loading loading-spinner loading-sm" />}
-              {!open ? 'Voting closed' : isLast ? 'Submit' : current.field ? 'Next' : 'Looks good'}
+              {!open
+                ? 'Voting closed'
+                : isLast
+                  ? votedAt
+                    ? 'Update my vote'
+                    : 'Submit'
+                  : current.field
+                    ? 'Next'
+                    : 'Looks good'}
             </button>
           </div>
         )
@@ -273,7 +308,12 @@ export function Flow({
       )}
       {current.id === 'day' && <DayStep />}
       {current.id === 'rsvp' && (
-        <RsvpStep rows={rows} value={draft.attending} onChoose={(id) => choose('attending', id)} />
+        <RsvpStep
+          rows={rows}
+          votedAt={votedAt}
+          value={draft.attending}
+          onChoose={(id) => choose('attending', id)}
+        />
       )}
     </Screen>
   )
