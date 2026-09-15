@@ -11,7 +11,7 @@ export function WearStep({ value, onChoose }: { value?: string; onChoose: (id: s
       label="Colour palettes"
       cols="md:grid-cols-2 lg:grid-cols-4"
       max="max-w-5xl"
-      height="h-[min(38dvh,18rem)]"
+      height="h-[calc(min(38dvh,18rem)+1rem)]"
       render={(p) => (
         <OptionCard selected={value === p.id} onSelect={() => onChoose(p.id)}>
           {/* flex does the arithmetic, so 5-swatch and 3-swatch palettes fill the same

@@ -31,7 +31,7 @@ export function WhereStep({
       items={venues}
       cols="md:grid-cols-2"
       max="max-w-4xl"
-      height="h-[min(54dvh,26rem)]"
+      height="h-[calc(min(54dvh,26rem)+1rem)]"
       render={(v) => {
         const hero = v.photos[0]!
         return (

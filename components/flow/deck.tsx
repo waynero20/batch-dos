@@ -40,12 +40,18 @@ export function Deck<T>({
   /** Width cap for the centred block. */
   max?: string
   /**
-   * Explicit track height, in `dvh` so it shrinks with the screen — e.g.
-   * "h-[min(46dvh,22rem)]".
+   * Explicit track height, in `dvh` so it shrinks with the screen.
    *
    * Required for any card whose media is `flex-1`: a venue photo or a palette's
    * swatch field collapses to nothing without a definite height to resolve against.
    * Cards built only from natural-height content leave it off and size themselves.
+   *
+   * Pairing `overflow-x: auto` with `overflow-y: hidden` is what makes the track a
+   * horizontal scroller — CSS will not let the other axis stay visible — and that
+   * shaved the selected card's ring clean off, top and bottom. The track now carries
+   * 0.5rem of padding, cancelled by an equal negative margin, so the ring and the
+   * hover lift have somewhere to go without moving anything. Add that 1rem back to
+   * whatever card height you want: `h-[calc(min(54dvh,26rem)+1rem)]`.
    */
   height?: string
   /** Names the group for screen readers, e.g. "Dates". */
@@ -110,7 +116,7 @@ export function Deck<T>({
           else return
           e.preventDefault()
         }}
-        className={`flex min-h-0 snap-x snap-mandatory scroll-smooth gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-2xl px-[9%] [scrollbar-width:none] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 md:grid md:gap-5 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden ${
+        className={`-my-2 flex min-h-0 snap-x snap-mandatory scroll-smooth gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-2xl px-[9%] py-2 [scrollbar-width:none] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 md:grid md:gap-5 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden ${
           height ? `${height} items-stretch md:auto-rows-fr` : 'items-center md:auto-rows-min'
         } ${cols}`}
       >
