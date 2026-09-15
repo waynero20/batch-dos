@@ -132,34 +132,6 @@ body {
   }
 }
 
-/* daisyUI's default step marks are 2rem discs on a 0.5rem rail — too heavy for a
-   five-step header on a phone. Halve the rail and shrink the disc so the stepper
-   reads as navigation rather than as the page's main graphic. */
-.steps .step:after {
-  width: 1.5rem;
-  height: 1.5rem;
-  font-size: 0.6875rem;
-  font-weight: 500;
-}
-
-/* Only the rail's thickness is ours — its width and offset stay daisyUI's, or the
-   connector overshoots the final step. */
-.steps .step:before {
-  height: 2px;
-}
-
-/* Six steps must fit a 360px phone. daisyUI's default min-width is 4rem, so six
-   steps demand 384px and .steps starts scrolling inside its own box. */
-.steps .step {
-  min-width: 3.25rem;
-}
-@media (width >= 48rem) {
-  .steps .step { min-width: 4rem; }
-}
-@media (width >= 64rem) {
-  .steps .step:after { width: 1.75rem; height: 1.75rem; font-size: 0.75rem; }
-}
-
 @keyframes rise {
   from {
     opacity: 0;

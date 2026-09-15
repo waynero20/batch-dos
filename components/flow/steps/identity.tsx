@@ -1,0 +1,143 @@
+'use client'
+
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { rankRoster } from '@/lib/roster-search'
+
+/**
+ * The way in. An input instead of 73 names, because the list was the one screen that
+ * could never honour the no-scroll rule.
+ *
+ * Already-voted names stay selectable: `submitBallot` rewrites a member's row in
+ * place, so coming back to change an answer is supported, and hiding those names
+ * would only make it look broken.
+ */
+export function IdentityStep({
+  roster,
+  voted,
+  value,
+  onPick,
+}: {
+  roster: readonly string[]
+  voted: readonly string[]
+  value?: string
+  onPick: (name: string) => void
+}) {
+  const [query, setQuery] = useState(value ?? '')
+  const [cursor, setCursor] = useState(0)
+  const listId = 'roster-results'
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const votedSet = useMemo(() => new Set(voted), [voted])
+  const results = useMemo(() => rankRoster(roster, query), [roster, query])
+
+  // A fresh query invalidates wherever the arrow keys had got to.
+  useEffect(() => setCursor(0), [query])
+
+  const typing = query.trim().length > 0
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <label className="input input-lg w-full shrink-0 rounded-field lg:max-w-xl">
+        <svg
+          aria-hidden
+          viewBox="0 0 24 24"
+          className="size-[1.1em] opacity-45"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.6-3.6" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (results.length === 0) return
+            if (e.key === 'ArrowDown') {
+              e.preventDefault()
+              setCursor((c) => Math.min(c + 1, results.length - 1))
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault()
+              setCursor((c) => Math.max(c - 1, 0))
+            } else if (e.key === 'Enter') {
+              e.preventDefault()
+              const name = results[cursor]
+              if (name) onPick(name)
+            }
+          }}
+          placeholder="Type your name"
+          autoComplete="off"
+          autoCapitalize="words"
+          aria-label="Type your name"
+          aria-controls={listId}
+          aria-expanded={typing}
+        />
+      </label>
+
+      <p aria-live="polite" className="sr-only">
+        {typing ? `${results.length} names match` : ''}
+      </p>
+
+      <div id={listId} className="mt-3 min-h-0 flex-1 overflow-hidden lg:max-w-xl">
+        {!typing && (
+          <p className="caption pt-1">
+            {roster.length} names on the masterlist · {votedSet.size} voted so far
+          </p>
+        )}
+
+        {typing && results.length === 0 && (
+          <p className="pt-4 text-sm opacity-50">
+            No match for “{query.trim()}”. Try your surname, or tell the committee.
+          </p>
+        )}
+
+        <ul>
+          {results.map((name, i) => (
+            <li key={name}>
+              <button
+                type="button"
+                onClick={() => onPick(name)}
+                onMouseEnter={() => setCursor(i)}
+                aria-current={value === name ? 'true' : undefined}
+                className={`flex w-full items-center gap-3 border-b border-base-300/70 py-3 text-left transition-colors ${
+                  i === cursor ? 'bg-base-200/70' : ''
+                }`}
+              >
+                <span
+                  className={`min-w-0 flex-1 truncate text-[0.95rem] ${
+                    value === name ? 'font-semibold text-primary' : 'font-medium'
+                  }`}
+                >
+                  {name}
+                </span>
+
+                {votedSet.has(name) && (
+                  <span className="badge badge-sm shrink-0 border-0 bg-base-200 font-medium text-base-content/60">
+                    Voted
+                  </span>
+                )}
+
+                <svg
+                  aria-hidden
+                  viewBox="0 0 24 24"
+                  className="size-4 shrink-0 opacity-25"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m9 6 6 6-6 6" />
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}

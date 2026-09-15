@@ -1,18 +1,16 @@
 import { redirect } from 'next/navigation'
-import { BallotForm } from '@/components/ballot-form'
 import { isMember } from '@/lib/roster'
-import { votingOpen } from '@/lib/config'
 
+/**
+ * The ballot lives at `/` now — identity is its first screen rather than a separate
+ * page. This route stays only so the `/vote?name=` links already sent to the group
+ * chat land in the right place instead of 404ing.
+ */
 export default async function VotePage({
   searchParams,
 }: {
   searchParams: Promise<{ name?: string }>
 }) {
   const { name } = await searchParams
-
-  // A hand-typed or stale URL goes back to the picker rather than into a ballot
-  // that the server action would only reject at the very end.
-  if (!name || !isMember(name)) redirect('/')
-
-  return <BallotForm name={name} open={votingOpen()} />
+  redirect(name && isMember(name) ? `/?name=${encodeURIComponent(name)}` : '/')
 }

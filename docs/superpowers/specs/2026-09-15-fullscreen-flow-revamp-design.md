@@ -23,9 +23,16 @@ Both settled with Wayne before the build:
 
 One route. `/` is a server component that reads the roster and who has already voted, then
 hands off to a single client `<Flow>` owning all seven screens. No navigation between
-steps, so there is no latency and no route seam mid-flow. Browser Back is wired to
-step-back through pushed history entries. `/vote?name=X` survives as a redirect so links
-already shared in the group chat still open the flow.
+steps, so there is no latency and no route seam mid-flow. `/vote?name=X` survives as a
+redirect so links already shared in the group chat still open the flow.
+
+Back is wired to step-back by pushing a **hash** — `#where`, `#food` — with a `null`
+history state. Both details are load-bearing and were found the hard way: Next owns the
+history state object, so writing our own clobbers the router's and turns the next Back
+into a full page reload; and keeping the step in the hash rather than in a query
+parameter leaves the pathname and `searchParams` untouched, so traversal never reaches
+the server component. A hash present on first load is stripped, because a shared
+`#wear` must not drop someone into a ballot they have not started.
 
 Rejected: keeping the `/` → `/vote` split (reintroduces a page load between step 1 and
 step 2, which is the seam the revamp exists to remove) and a route per step (a server
@@ -69,6 +76,13 @@ roomy layout would be worse, not sleeker.
 Children are `w-full shrink-0 snap-center` with no gap on the mobile track, so
 `scrollLeft / clientWidth` rounds to the active index exactly.
 
+The deck takes a `fill` prop. On by default and not cosmetic: a card whose media is
+`flex-1` — a venue photo, a palette's swatch field — collapses to zero height in a
+content-sized grid row, because its `h-full` has nothing definite to resolve against.
+Dates and caterers are built from natural-height content, so they set `fill={false}` and
+centre instead of stretching. The same chain has to hold all the way up: the wrapper
+inside `Screen` grows, or everything below it is content-height and the media collapses.
+
 ### Identity
 
 At rest the input sits alone above a count. Typing reveals up to six ranked matches —
@@ -106,6 +120,11 @@ wear, day, rsvp).
 `lib/schema.test.ts` passes unedited — that is the proof the data contract did not move.
 New unit tests cover the typeahead's ranking and accent folding. Deck behaviour is CSS and
 is checked in a browser, not a test.
+
+Verified in Chrome at 402x844 and 360x640: every one of the seven screens reports a
+document height exactly equal to the viewport, with no scrolling on either axis. Back and
+Forward step through the flow without a reload, and a partial saved draft resumes at its
+first unanswered question.
 
 Submitting a ballot writes to the live workbook; clear it with
 `pnpm clear-vote "Surname, Firstname"`.

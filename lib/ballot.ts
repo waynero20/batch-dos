@@ -29,7 +29,7 @@ export const DATES = [
 export type VenuePhoto = {
   src: string
   alt: string
-  /** Intrinsic pixels. The venue card grades itself from these — never from an id.
+  /** Intrinsic pixels, kept as a record of what each source file can actually fill.
    *  Adding a photo? Run: sips -g pixelWidth -g pixelHeight <file> */
   w: number
   h: number
@@ -45,8 +45,8 @@ export type VenueOption = {
   description: string
   location: string
   features: readonly string[]
-  /** First photo is the card's hero. Counts are uneven by design — 1 / 3 / 5 / 3 —
-   *  and the card grades its own layout from each file's intrinsic pixels. */
+  /** First photo is the card's hero. The flow shows only the hero; the rest are the
+   *  committee's reference for the deck. */
   photos: readonly VenuePhoto[]
   /** Closing line for a venue with a single photo, so the one-photo card reads as the
    *  fullest rather than the emptiest. Ignored when the venue has extras. */
@@ -274,43 +274,7 @@ export const trackForDate = (id: DateId): Track =>
 export const venuesForTrack = (track: Track): readonly VenueOption[] =>
   VENUES.filter((v) => v.track === track)
 
-/** Max CSS width at which a photo still resolves at roughly 2x device pixel ratio. */
-export const photoCap = (p: VenuePhoto): number => Math.floor(p.w / 2)
-
-/** span and sizes travel together so they can never drift apart. */
-const VENUE_WIDTH = {
-  wide: {
-    span: 'xl:col-span-7',
-    sizes:
-      '(max-width:639px) 100vw, (max-width:767px) 512px, (max-width:1023px) 46vw, (max-width:1279px) 34vw, (max-width:1439px) 38vw, 542px',
-  },
-  equal: {
-    span: 'xl:col-span-6',
-    sizes:
-      '(max-width:639px) 100vw, (max-width:767px) 512px, (max-width:1023px) 46vw, (max-width:1279px) 34vw, (max-width:1439px) 32vw, 459px',
-  },
-  narrow: {
-    span: 'xl:col-span-5',
-    sizes:
-      '(max-width:639px) 100vw, (max-width:767px) 512px, (max-width:1023px) 46vw, (max-width:1279px) 34vw, (max-width:1439px) 27vw, 378px',
-  },
-} as const
-
-/**
- * The wider column goes to whichever hero has the pixels to fill it — graded from the
- * files, never from a venue id. Re-shoot a photo and the layout re-grades itself.
- * Only skews on a real (>=25%) resolution advantage.
- */
-export const venueLayout = (pair: readonly VenueOption[]) => {
-  if (pair.length !== 2) return pair.map(() => VENUE_WIDTH.equal)
-  const ca = photoCap(pair[0]!.photos[0]!)
-  const cb = photoCap(pair[1]!.photos[0]!)
-  if (ca >= cb * 1.25) return [VENUE_WIDTH.wide, VENUE_WIDTH.narrow]
-  if (cb >= ca * 1.25) return [VENUE_WIDTH.narrow, VENUE_WIDTH.wide]
-  return [VENUE_WIDTH.equal, VENUE_WIDTH.equal]
-}
-
-/** One source of truth for the rail card, the mobile chip strip and the RSVP summary. */
+/** One source of truth for the RSVP receipt. */
 export const planRows = (d: {
   dateId?: string
   venueId?: string
@@ -318,22 +282,82 @@ export const planRows = (d: {
   paletteId?: string
 }) =>
   [
-    { step: 0, label: 'When', value: DATES.find((x) => x.id === d.dateId)?.label },
-    { step: 1, label: 'Where', value: VENUES.find((x) => x.id === d.venueId)?.name },
-    { step: 2, label: 'Food', value: FOOD.find((x) => x.id === d.foodId)?.name },
-    { step: 3, label: 'Wear', value: PALETTES.find((x) => x.id === d.paletteId)?.name },
+    { step: 1, label: 'When', value: DATES.find((x) => x.id === d.dateId)?.label },
+    { step: 2, label: 'Where', value: VENUES.find((x) => x.id === d.venueId)?.name },
+    { step: 3, label: 'Food', value: FOOD.find((x) => x.id === d.foodId)?.name },
+    { step: 4, label: 'Wear', value: PALETTES.find((x) => x.id === d.paletteId)?.name },
   ] as const
 
-/** Standfirsts. Step 1 is null — it keeps its dynamic track sentence, which is the only
- *  place the province/city rule is explained. */
-export const STEP_NOTE = [
-  'Two province dates, one in the city. Your date decides which places are on the table.',
-  null,
-  'Three caterers, priced by tray and by head. The final package follows the headcount.',
-  'Four palettes off the moodboard. Any shade counts — nobody is buying anything new.',
-  'Same plan wherever we land. One last question after this.',
-  'Check the card, then tell us if you’re coming.',
-] as const
+/**
+ * The flow, one screen per entry.
+ *
+ * `field` is the draft key the screen fills, or null for a screen that shows rather
+ * than asks. `note` is the standfirst; Where's is null because it earns a dynamic
+ * sentence naming the track, the only place the province/city rule is explained.
+ */
+export type FlowStep = {
+  id: string
+  short: string
+  title: string
+  field: 'dateId' | 'venueId' | 'foodId' | 'paletteId' | 'attending' | null
+  note: string | null
+}
+
+export const FLOW_STEPS = [
+  {
+    id: 'who',
+    short: 'Who',
+    title: 'Who are you?',
+    field: null,
+    note: 'Type a few letters of your name. No password, no sign-in.',
+  },
+  {
+    id: 'when',
+    short: 'When',
+    title: 'When should we meet?',
+    field: 'dateId',
+    note: 'Two province dates, one in the city. Your date decides which places are on the table.',
+  },
+  {
+    id: 'where',
+    short: 'Where',
+    title: 'Where should we go?',
+    field: 'venueId',
+    note: null,
+  },
+  {
+    id: 'food',
+    short: 'Food',
+    title: 'What should we eat?',
+    field: 'foodId',
+    note: 'Three caterers, priced by tray and by head. The final package follows the headcount.',
+  },
+  {
+    id: 'wear',
+    short: 'Wear',
+    title: 'What should we wear?',
+    field: 'paletteId',
+    note: 'Four palettes off the moodboard. Any shade counts — nobody is buying anything new.',
+  },
+  {
+    id: 'day',
+    short: 'Day',
+    title: 'Here’s the day',
+    field: null,
+    note: 'Same plan wherever we land. One last question after this.',
+  },
+  {
+    id: 'rsvp',
+    short: 'RSVP',
+    title: 'Are you coming?',
+    field: 'attending',
+    note: 'Check the card, then tell us if you’re coming.',
+  },
+] as const satisfies readonly FlowStep[]
+
+/** Index of the one screen that asks for identity, and of the last. */
+export const WHO_STEP = 0
+export const LAST_STEP = FLOW_STEPS.length - 1
 
 export const VENUE_CLEARED_NOTE = 'Cleared — that date changes the venues.'
 
