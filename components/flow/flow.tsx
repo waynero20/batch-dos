@@ -4,8 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useRouter } from 'next/navigation'
 import {
   DATES,
+  FIRST_QUESTION,
   FLOW_STEPS,
   LAST_STEP,
+  reachedThrough,
+  type BallotDraft,
   TRACK_LABEL,
   VENUE_CLEARED_NOTE,
   planRows,
@@ -23,30 +26,12 @@ import { WearStep } from './steps/wear'
 import { WhenStep } from './steps/when'
 import { WhereStep } from './steps/where'
 
-type Draft = {
-  dateId?: string
-  venueId?: string
-  foodId?: string
-  paletteId?: string
-  attending?: string
-}
-
 const storageKey = (name: string) => `batch-dos-ballot:${name}`
 
-/** Where to drop someone resuming a saved draft: their first unanswered question,
- *  or the last screen if they answered everything and never submitted. */
-function firstUnanswered(draft: Draft): number {
-  for (let i = 1; i < FLOW_STEPS.length; i++) {
-    const field = FLOW_STEPS[i]!.field
-    if (field && !draft[field]) return i
-  }
-  return LAST_STEP
-}
-
-function loadDraft(name: string): Draft {
+function loadDraft(name: string): BallotDraft {
   try {
     const raw = localStorage.getItem(storageKey(name))
-    return raw ? (JSON.parse(raw) as Draft) : {}
+    return raw ? (JSON.parse(raw) as BallotDraft) : {}
   } catch {
     // Private browsing or blocked storage — the ballot works, it just won't resume.
     return {}
@@ -82,7 +67,7 @@ export function Flow({
   // goTo has to compare against the live step without taking it as a dependency,
   // or every advance would rebuild the callback the popstate listener closed over.
   const stepRef = useRef(0)
-  const [draft, setDraft] = useState<Draft>({})
+  const [draft, setDraft] = useState<BallotDraft>({})
   const [venueCleared, setVenueCleared] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -120,12 +105,14 @@ export function Flow({
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  // A shared link that named someone skips the first screen.
+  // A shared link that named someone skips the identity screen — but still opens on
+  // the first question, not wherever a stale draft happens to reach.
   useEffect(() => {
     if (!initialName) return
     const saved = loadDraft(initialName)
     setDraft(saved)
-    goTo(firstUnanswered(saved))
+    goTo(FIRST_QUESTION)
+    setFurthest((f) => Math.max(f, reachedThrough(saved)))
   }, [initialName, goTo])
 
   // Answers survive a closed tab or a dropped connection.
@@ -142,10 +129,11 @@ export function Flow({
     setName(chosen)
     const saved = loadDraft(chosen)
     setDraft(saved)
-    goTo(firstUnanswered(saved))
+    goTo(FIRST_QUESTION)
+    setFurthest((f) => Math.max(f, reachedThrough(saved)))
   }
 
-  const choose = (key: keyof Draft, value: string) => {
+  const choose = (key: keyof BallotDraft, value: string) => {
     setError(null)
     setDraft((prev) => {
       const next = { ...prev, [key]: value }

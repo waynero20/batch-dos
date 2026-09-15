@@ -355,9 +355,31 @@ export const FLOW_STEPS = [
   },
 ] as const satisfies readonly FlowStep[]
 
-/** Index of the one screen that asks for identity, and of the last. */
+/** Index of the identity screen, of the first real question, and of the last screen. */
 export const WHO_STEP = 0
+export const FIRST_QUESTION = 1
 export const LAST_STEP = FLOW_STEPS.length - 1
+
+/** A ballot in progress: every answer optional until it is given. */
+export type BallotDraft = Partial<Record<Exclude<FlowStep['field'], null>, string>>
+
+/**
+ * How far a saved draft legitimately got: its first unanswered question, or the last
+ * screen if every answer is already in and it was never submitted.
+ *
+ * This is how far the progress bar unlocks — it is NOT where the flow opens. Landing
+ * someone on question four because a draft they do not remember says so reads as a
+ * bug: they never saw the date they supposedly picked. The ballot always opens on its
+ * first question, with the saved answers already selected, and the steps behind this
+ * mark stay tappable for anyone who does want to skip ahead.
+ */
+export function reachedThrough(draft: BallotDraft): number {
+  for (let i = FIRST_QUESTION; i < FLOW_STEPS.length; i++) {
+    const field = FLOW_STEPS[i]!.field
+    if (field && !draft[field]) return i
+  }
+  return LAST_STEP
+}
 
 export const VENUE_CLEARED_NOTE = 'Cleared — that date changes the venues.'
 
