@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   DATES,
@@ -77,12 +77,19 @@ export function Flow({
   const [name, setName] = useState<string | undefined>(initialName)
   const [step, setStep] = useState(0)
   const [furthest, setFurthest] = useState(0)
+  // Which way the last move went, so each screen enters from the side you came from.
+  const [dir, setDir] = useState<'fwd' | 'back'>('fwd')
+  // goTo has to compare against the live step without taking it as a dependency,
+  // or every advance would rebuild the callback the popstate listener closed over.
+  const stepRef = useRef(0)
   const [draft, setDraft] = useState<Draft>({})
   const [venueCleared, setVenueCleared] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
   const goTo = useCallback((next: number) => {
+    setDir(next >= stepRef.current ? 'fwd' : 'back')
+    stepRef.current = next
     setVenueCleared(false)
     setError(null)
     setStep(next)
@@ -104,7 +111,10 @@ export function Flow({
     const onPop = () => {
       const id = window.location.hash.slice(1)
       const i = FLOW_STEPS.findIndex((s) => s.id === id)
-      setStep(i >= 0 ? i : 0)
+      const next = i >= 0 ? i : 0
+      setDir(next >= stepRef.current ? 'fwd' : 'back')
+      stepRef.current = next
+      setStep(next)
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
@@ -196,38 +206,37 @@ export function Flow({
       note={note}
       name={name}
       furthest={furthest}
+      dir={dir}
       onBack={() => window.history.back()}
       onJump={goTo}
       footer={
         step === 0 ? (
-          <p className="caption">
-            {open ? 'Tap your name to begin.' : 'Voting is closed.'}
-          </p>
+          open ? null : <p className="caption">Voting is closed.</p>
         ) : (
-          <>
+          <div className="flex w-full flex-col items-center">
             {venueCleared && (
-              <p className="caption mb-2 text-primary opacity-100">{VENUE_CLEARED_NOTE}</p>
+              <p className="caption mb-2 text-center text-primary opacity-100">
+                {VENUE_CLEARED_NOTE}
+              </p>
             )}
             {error && (
-              <div role="alert" className="alert alert-error mb-2.5 py-2.5 text-sm">
+              <div
+                role="alert"
+                className="mb-2.5 max-w-md rounded-2xl bg-error px-4 py-2.5 text-center text-sm text-error-content"
+              >
                 {error}
               </div>
             )}
-            <div className="flex items-center gap-5">
-              <button
-                type="button"
-                disabled={!answered || pending || !open}
-                onClick={() => (isLast ? submit() : goTo(step + 1))}
-                className="btn btn-primary btn-lg btn-block rounded-field lg:w-auto lg:min-w-[15rem] lg:flex-none"
-              >
-                {pending && <span className="loading loading-spinner loading-sm" />}
-                {!open ? 'Voting closed' : isLast ? 'Submit' : current.field ? 'Next' : 'Looks good'}
-              </button>
-              <span className="eyebrow hidden lg:block">
-                Question {step} of {LAST_STEP}
-              </span>
-            </div>
-          </>
+            <button
+              type="button"
+              disabled={!answered || pending || !open}
+              onClick={() => (isLast ? submit() : goTo(step + 1))}
+              className="cta w-full max-w-sm"
+            >
+              {pending && <span className="loading loading-spinner loading-sm" />}
+              {!open ? 'Voting closed' : isLast ? 'Submit' : current.field ? 'Next' : 'Looks good'}
+            </button>
+          </div>
         )
       }
     >

@@ -309,7 +309,7 @@ export const FLOW_STEPS = [
     short: 'Who',
     title: 'Who are you?',
     field: null,
-    note: 'Type a few letters of your name. No password, no sign-in.',
+    note: null,
   },
   {
     id: 'when',

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { rankRoster } from '@/lib/roster-search'
 
 /**
@@ -25,7 +25,6 @@ export function IdentityStep({
   const [query, setQuery] = useState(value ?? '')
   const [cursor, setCursor] = useState(0)
   const listId = 'roster-results'
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const votedSet = useMemo(() => new Set(voted), [voted])
   const results = useMemo(() => rankRoster(roster, query), [roster, query])
@@ -36,12 +35,12 @@ export function IdentityStep({
   const typing = query.trim().length > 0
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <label className="input input-lg w-full shrink-0 rounded-field lg:max-w-xl">
+    <div className="mx-auto flex w-full max-w-lg flex-col items-center">
+      <label className="field shrink-0">
         <svg
           aria-hidden
           viewBox="0 0 24 24"
-          className="size-[1.1em] opacity-45"
+          className="size-[1.15em] shrink-0 opacity-35"
           fill="none"
           stroke="currentColor"
           strokeWidth="2.4"
@@ -51,7 +50,6 @@ export function IdentityStep({
           <path d="m20 20-3.6-3.6" />
         </svg>
         <input
-          ref={inputRef}
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -82,20 +80,14 @@ export function IdentityStep({
         {typing ? `${results.length} names match` : ''}
       </p>
 
-      <div id={listId} className="mt-3 min-h-0 flex-1 overflow-hidden lg:max-w-xl">
-        {!typing && (
-          <p className="caption pt-1">
-            {roster.length} names on the masterlist · {votedSet.size} voted so far
-          </p>
-        )}
-
+      <div id={listId} className="mt-3 w-full">
         {typing && results.length === 0 && (
-          <p className="pt-4 text-sm opacity-50">
+          <p className="pt-3 text-center text-sm opacity-45">
             No match for “{query.trim()}”. Try your surname, or tell the committee.
           </p>
         )}
 
-        <ul>
+        <ul className="w-full">
           {results.map((name, i) => (
             <li key={name}>
               <button
@@ -103,36 +95,18 @@ export function IdentityStep({
                 onClick={() => onPick(name)}
                 onMouseEnter={() => setCursor(i)}
                 aria-current={value === name ? 'true' : undefined}
-                className={`flex w-full items-center gap-3 border-b border-base-300/70 py-3 text-left transition-colors ${
-                  i === cursor ? 'bg-base-200/70' : ''
+                className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 transition-colors duration-200 ${
+                  i === cursor ? 'bg-base-200' : ''
                 }`}
               >
                 <span
-                  className={`min-w-0 flex-1 truncate text-[0.95rem] ${
+                  className={`truncate text-[0.95rem] ${
                     value === name ? 'font-semibold text-primary' : 'font-medium'
                   }`}
                 >
                   {name}
                 </span>
-
-                {votedSet.has(name) && (
-                  <span className="badge badge-sm shrink-0 border-0 bg-base-200 font-medium text-base-content/60">
-                    Voted
-                  </span>
-                )}
-
-                <svg
-                  aria-hidden
-                  viewBox="0 0 24 24"
-                  className="size-4 shrink-0 opacity-25"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m9 6 6 6-6 6" />
-                </svg>
+                {votedSet.has(name) && <span className="chip shrink-0">Voted</span>}
               </button>
             </li>
           ))}

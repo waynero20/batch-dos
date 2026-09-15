@@ -16,30 +16,27 @@ export function RsvpStep({
   onChoose: (id: string) => void
 }) {
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 lg:flex-row-reverse lg:items-start lg:gap-10">
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center">
       {/* The receipt. The only place the running plan survives — everywhere else it
           was furniture, here it is the thing you check before committing. */}
-      <dl className="shrink-0 divide-y divide-base-300/70 overflow-hidden rounded-box border border-base-300 lg:w-80">
+      <dl className="grid w-full shrink-0 grid-cols-2 gap-px overflow-hidden rounded-[1.125rem] border border-base-300 bg-base-300 sm:grid-cols-4">
         {rows.map((r) => (
-          <div
-            key={r.label}
-            className="flex items-baseline justify-between gap-3 px-4 py-2 lg:px-5 lg:py-3"
-          >
+          <div key={r.label} className="bg-base-100 px-3 py-2.5">
             <dt className="eyebrow">{r.label}</dt>
-            <dd className="truncate text-[0.8125rem] font-medium lg:text-sm">{r.value ?? '—'}</dd>
+            <dd className="mt-1 truncate text-[0.8125rem] font-medium">{r.value ?? '—'}</dd>
           </div>
         ))}
       </dl>
 
-      <div className="grid min-h-0 flex-1 content-start gap-2.5 sm:grid-cols-3 lg:gap-4">
+      <div className="mt-4 grid w-full gap-2.5 sm:grid-cols-3 lg:mt-6 lg:gap-4">
         {ATTENDANCE.map((a, i) => {
           const selected = value === a.id
           return (
             <OptionCard key={a.id} selected={selected} showCheck={false} onSelect={() => onChoose(a.id)}>
-              <div className="flex items-center gap-3.5 px-4 py-3.5 sm:flex-col sm:items-start sm:gap-0 sm:px-5 sm:py-5">
+              <div className="flex items-center justify-center gap-3 px-4 py-3.5 sm:flex-col sm:gap-2.5 sm:py-6">
                 <span
-                  className={`flex size-8 shrink-0 items-center justify-center rounded-full sm:mb-3 ${
-                    selected ? 'bg-primary text-primary-content' : 'bg-base-200 opacity-45'
+                  className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
+                    selected ? 'bg-primary text-primary-content' : 'bg-base-200 opacity-40'
                   }`}
                 >
                   <svg
@@ -55,7 +52,7 @@ export function RsvpStep({
                     <path d={GLYPH[i]} />
                   </svg>
                 </span>
-                <span className="h-display text-lg sm:text-xl lg:text-2xl">{a.label}</span>
+                <span className="h-display text-lg lg:text-xl">{a.label}</span>
               </div>
             </OptionCard>
           )

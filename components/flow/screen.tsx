@@ -3,13 +3,13 @@
 /**
  * The one shell every screen wears.
  *
- * Three rows on a locked `100dvh`, and only the middle one flexes. Nothing here may
- * scroll: content that cannot fit becomes a Deck rather than a column running past
- * the fold. `min-h-0` on the middle row is what lets its child shrink instead of
- * pushing the footer off-screen — without it a tall deck would win the fight.
+ * Three rows on a locked `100dvh`, and the middle one centres its contents on both
+ * axes — every question is a single composition in the middle of the screen rather
+ * than a page that starts at the top left. Nothing here may scroll: content that
+ * cannot fit becomes a Deck, and the Deck caps its own height in `dvh`.
  *
  * `dvh` rather than `vh` so the mobile keyboard, which shrinks the visual viewport on
- * the identity screen, compresses the list instead of hiding the button.
+ * the identity screen, compresses the composition instead of hiding the button.
  */
 export function Screen({
   index,
@@ -19,6 +19,7 @@ export function Screen({
   note,
   name,
   furthest,
+  dir,
   onBack,
   onJump,
   footer,
@@ -32,6 +33,8 @@ export function Screen({
   name?: string
   /** Highest screen reached, so answered ones stay reachable and later ones do not. */
   furthest: number
+  /** Which way the last move went, so the entrance animation agrees with the gesture. */
+  dir: 'fwd' | 'back'
   onBack: () => void
   onJump: (i: number) => void
   footer: React.ReactNode
@@ -39,39 +42,30 @@ export function Screen({
 }) {
   return (
     <section className="grid h-[100dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
-      <header>
-        <div className="shell flex items-center justify-between gap-3 pb-2.5 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="pt-[max(0.625rem,env(safe-area-inset-top))]">
+        <div className="shell flex h-9 items-center justify-between gap-3">
           {/* Nothing to go back to on the first screen, and a dead control there would
-              read as broken. The slot stays, so the eyebrow does not shift. */}
+              read as broken — the intro takes the slot instead. */}
           {index > 0 ? (
-            <button
-              type="button"
-              onClick={onBack}
-              className="btn btn-ghost btn-xs -ml-2 gap-1 font-normal opacity-55"
-            >
+            <button type="button" onClick={onBack} className="ghost -ml-2 text-sm">
               <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m15 6-6 6 6 6" />
               </svg>
               Back
             </button>
           ) : (
-            <a href="/?intro" className="eyebrow -ml-0.5 underline-offset-4 hover:underline">
+            <a href="/?intro" className="ghost eyebrow -ml-2 opacity-40">
               Watch the intro
             </a>
           )}
 
-          <span className="eyebrow">
-            {String(index + 1).padStart(2, '0')} · {short}
-          </span>
-
-          <span className="max-w-[9rem] truncate text-xs opacity-45 lg:max-w-[16rem] lg:text-sm">
+          <span className="max-w-[10rem] truncate text-xs opacity-35 lg:max-w-[18rem] lg:text-sm">
             {name ?? ''}
           </span>
         </div>
 
-        {/* Edge to edge on purpose — a rule that stops at the shell's padding reads as
-            a component; one that runs the full width reads as the page's own progress. */}
-        <div className="flex gap-px">
+        {/* Centred and narrow: an edge-to-edge rule fights a centred composition. */}
+        <div className="mx-auto mt-2.5 flex w-full max-w-[13rem] gap-1 px-5 lg:max-w-[16rem]">
           {Array.from({ length: total }, (_, i) => {
             const reachable = i <= furthest && i !== index
             return (
@@ -82,12 +76,12 @@ export function Screen({
                 onClick={() => onJump(i)}
                 aria-label={`Step ${i + 1} of ${total}`}
                 aria-current={i === index ? 'step' : undefined}
-                className="group flex-1 py-2 disabled:cursor-default"
+                className="group flex-1 py-1.5 disabled:cursor-default"
               >
                 <span
-                  className={`block h-[3px] transition-colors ${
+                  className={`block h-[3px] rounded-full transition-colors duration-500 ${
                     i <= index ? 'bg-primary' : 'bg-base-300'
-                  } ${reachable ? 'group-hover:bg-primary/60' : ''}`}
+                  } ${reachable ? 'group-hover:bg-primary/50' : ''}`}
                 />
               </button>
             )
@@ -95,21 +89,31 @@ export function Screen({
         </div>
       </header>
 
-      <div className="shell flex min-h-0 flex-col pt-3 lg:pt-6">
-        <div key={index} className="rise flex min-h-0 flex-1 flex-col">
-          <h1 className="h-display shrink-0 text-[1.875rem] sm:text-[2.25rem] lg:text-[2.75rem]">
+      <div className="shell flex min-h-0 items-center justify-center">
+        <div
+          key={index}
+          data-dir={dir}
+          className="flex min-h-0 w-full flex-col items-center py-2"
+        >
+          <span className="si si-1 eyebrow shrink-0">
+            {String(index + 1).padStart(2, '0')} · {short}
+          </span>
+
+          <h1 className="si si-2 h-display mt-2.5 max-w-[16ch] shrink-0 text-center text-[2rem] sm:text-[2.5rem] lg:mt-3 lg:text-[3rem]">
             {title}
           </h1>
+
           {note && (
-            <p className="mt-2 max-w-[46ch] shrink-0 text-[0.8125rem] leading-relaxed opacity-55 lg:text-[0.9375rem]">
+            <p className="si si-3 mt-2.5 max-w-[42ch] shrink-0 text-balance text-center text-[0.8125rem] leading-relaxed opacity-50 lg:mt-3 lg:text-[0.9375rem]">
               {note}
             </p>
           )}
-          <div className="mt-4 min-h-0 flex-1 lg:mt-6">{children}</div>
+
+          <div className="si si-4 mt-5 min-h-0 w-full lg:mt-7">{children}</div>
         </div>
       </div>
 
-      <footer className="shell pb-[max(0.875rem,env(safe-area-inset-bottom))] pt-3">
+      <footer className="shell flex flex-col items-center pb-[max(0.875rem,env(safe-area-inset-bottom))] pt-3">
         {footer}
       </footer>
     </section>

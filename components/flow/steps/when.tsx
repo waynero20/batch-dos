@@ -4,36 +4,31 @@ import { DATES, TRACK_LABEL, venueSummaryForTrack } from '@/lib/ballot'
 import { Deck } from '../deck'
 import { OptionCard } from '../option-card'
 
-export function WhenStep({
-  value,
-  onChoose,
-}: {
-  value?: string
-  onChoose: (id: string) => void
-}) {
+export function WhenStep({ value, onChoose }: { value?: string; onChoose: (id: string) => void }) {
   return (
     <Deck
       items={DATES}
+      label="Dates"
       cols="md:grid-cols-3"
-      fill={false}
+      max="max-w-3xl"
       render={(d) => {
         const [month, day] = d.label.split(' ')
         const selected = value === d.id
         return (
           <OptionCard selected={selected} onSelect={() => onChoose(d.id)}>
-            <div
-              className={`flex shrink-0 flex-col justify-end px-5 pb-4 pt-6 transition-colors duration-150 ${
-                selected ? 'bg-primary text-primary-content' : 'bg-base-200'
-              }`}
-            >
+            <div className="flex flex-col items-center px-5 pb-5 pt-7">
               <span className="eyebrow">{TRACK_LABEL[d.track]}</span>
-              <div className="mt-1 flex items-baseline gap-1.5">
-                <span className="text-sm opacity-55">{month}</span>
-                <span className="folio text-[2.5rem] lg:text-[3rem]">{day}</span>
-              </div>
+              <span
+                className={`folio mt-2.5 text-[3.25rem] transition-colors duration-300 ${
+                  selected ? 'text-primary' : ''
+                }`}
+              >
+                {day}
+              </span>
+              <span className="mt-0.5 text-sm opacity-45">{month}</span>
             </div>
-            <div className="min-h-0 flex-1 p-4 lg:p-5">
-              <p className="text-[0.8125rem] leading-relaxed opacity-50">
+            <div className="border-t border-base-300/70 px-4 py-3">
+              <p className="text-[0.75rem] leading-relaxed opacity-45">
                 {venueSummaryForTrack(d.track)}
               </p>
             </div>

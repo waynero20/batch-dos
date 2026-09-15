@@ -5,7 +5,7 @@ import { PROGRAM } from '@/lib/program'
 /**
  * The one screen that shows rather than asks.
  *
- * The full fifteen-moment timeline cannot fit a viewport, so it lives on `/done`,
+ * The full fourteen-moment timeline cannot fit a viewport, so it lives on `/done`,
  * where there is room to scroll. Here it is three anchors and a count — enough to
  * picture the day before the last question.
  */
@@ -24,41 +24,35 @@ export function DayStep() {
   ] as const
 
   return (
-    <div className="flex h-full min-h-0 flex-col lg:max-w-3xl">
-      <dl className="grid shrink-0 grid-cols-3 gap-px overflow-hidden rounded-box border border-base-300 bg-base-300">
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center">
+      <dl className="grid w-full shrink-0 grid-cols-3 gap-px overflow-hidden rounded-[1.125rem] border border-base-300 bg-base-300">
         {stats.map(([label, value]) => (
-          <div key={label} className="bg-base-100 px-4 py-3 lg:px-5 lg:py-4">
+          <div key={label} className="bg-base-100 px-3 py-3.5 lg:py-4">
             <dt className="caption">{label}</dt>
-            <dd className="folio mt-1 text-[1.375rem] lg:text-[1.75rem]">{value}</dd>
+            <dd className="folio mt-1 text-[1.375rem] lg:text-[1.625rem]">{value}</dd>
           </div>
         ))}
       </dl>
 
-      <ol className="mt-4 min-h-0 flex-1 lg:mt-6">
+      <ol className="mx-auto mt-4 w-full max-w-sm lg:mt-5">
         {anchors.map((item) => (
           <li
             key={item.title}
-            className="flex items-baseline gap-4 border-b border-base-300/70 py-2.5 lg:py-3"
+            className="grid grid-cols-[4.25rem_minmax(0,1fr)_3.5rem] items-baseline gap-2 border-b border-base-300/60 py-2.5 last:border-0"
           >
-            <span className="w-[4.5rem] shrink-0 text-[0.8125rem] tabular-nums opacity-45 lg:text-sm">
-              {item.start}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-[0.9375rem] font-medium lg:text-base">
+            <span className="text-right text-[0.8125rem] tabular-nums opacity-40">{item.start}</span>
+            <span className="truncate text-left text-[0.9375rem] font-medium lg:text-base">
               {item.title}
             </span>
-            {item.end && (
-              <span className="shrink-0 text-[0.75rem] opacity-40 lg:text-[0.8125rem]">
-                {item.end}
-              </span>
-            )}
+            <span className="text-right text-[0.75rem] tabular-nums opacity-35">{item.end ?? ''}</span>
           </li>
         ))}
       </ol>
 
-      <p className="pull shrink-0 border-l-2 border-primary pl-4 text-[1.125rem] sm:text-[1.375rem] lg:pl-5 lg:text-[1.5rem]">
+      <p className="pull mt-5 max-w-[30ch] text-center text-[1.125rem] sm:text-[1.375rem] lg:mt-6 lg:text-[1.5rem]">
         Everyone gets a moment to share what the last nine years looked like.
       </p>
-      <p className="caption mt-1.5 shrink-0">The full programme is on the last screen.</p>
+      <p className="caption mt-2">The full programme is on the last screen.</p>
     </div>
   )
 }
