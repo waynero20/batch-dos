@@ -21,15 +21,9 @@ describe('FLOW_STEPS', () => {
     }
   })
 
-  it('gives every screen a standfirst except Where, which builds its own', () => {
-    // Where names the track you picked, so its sentence cannot be static.
+  it('carries no standfirst at all — the question is the whole screen', () => {
     for (const step of FLOW_STEPS) {
-      if (step.id === 'where') {
-        expect(step.note).toBeNull()
-      } else {
-        expect(step.note, `${step.id} note`).toBeTruthy()
-        expect(step.note!.trim(), `${step.id} note`).not.toBe('')
-      }
+      expect(step, `${step.id}`).not.toHaveProperty('note')
     }
   })
 

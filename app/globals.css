@@ -147,8 +147,22 @@ body {
 @keyframes step-in {
   from {
     opacity: 0;
-    transform: translate3d(0, var(--from-y, 20px), 0);
+    transform: translate3d(0, var(--from-y, 20px), 0) scale(var(--from-scale, 1));
   }
+}
+
+/* The outgoing screen pushes past the viewport as the next one comes up from
+   underneath it, so choosing a date reads as moving into that choice. */
+@keyframes step-zoom-out {
+  to {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+[data-enter='zoom'] {
+  --from-y: 0px;
+  --from-scale: 0.93;
 }
 
 [data-dir='back'] {
@@ -159,11 +173,12 @@ body {
   .si {
     animation: step-in 520ms var(--ease-soft) both;
   }
+  .zooming {
+    animation: step-zoom-out 240ms var(--ease-soft) both;
+  }
   /* Staggered so the eye lands on the question before the options resolve. */
   .si-1 { animation-delay: 30ms; }
-  .si-2 { animation-delay: 80ms; }
-  .si-3 { animation-delay: 140ms; }
-  .si-4 { animation-delay: 210ms; }
+  .si-2 { animation-delay: 120ms; }
 
   /* The flow's one input. daisyUI's .input is a form control; this is the whole
      point of its screen, so it is built at that scale. */
@@ -273,6 +288,37 @@ body {
     box-shadow:
       0 0 0 2px var(--color-primary),
       0 20px 44px -26px color-mix(in oklch, var(--color-primary) 80%, transparent);
+  }
+
+  /* A pickable day in the When calendar. Unavailable days are plain text, so only
+     the three the batch can actually choose carry a target. */
+  .day {
+    display: flex;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-base-300);
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    transition:
+      transform 260ms var(--ease-soft),
+      background-color 260ms var(--ease-soft),
+      border-color 260ms var(--ease-soft),
+      color 260ms var(--ease-soft);
+  }
+  @media (width >= 40rem) {
+    .day { height: 2.75rem; font-size: 1.0625rem; }
+  }
+  @media (hover: hover) {
+    .day:hover { border-color: var(--color-primary); transform: scale(1.07); }
+  }
+  .day:active { transform: scale(0.95); }
+  .day[aria-pressed='true'] {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-content);
   }
 
   /* Small standalone label — replaces daisyUI's badge inside the flow. */

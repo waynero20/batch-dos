@@ -1,5 +1,7 @@
 'use client'
 
+import { FLOW_STEPS } from '@/lib/ballot'
+
 /**
  * The one shell every screen wears.
  *
@@ -14,12 +16,12 @@
 export function Screen({
   index,
   total,
-  short,
   title,
-  note,
   name,
   furthest,
   dir,
+  enter,
+  zooming,
   onBack,
   onJump,
   footer,
@@ -27,14 +29,16 @@ export function Screen({
 }: {
   index: number
   total: number
-  short: string
   title: string
-  note: string | null
   name?: string
   /** Highest screen reached, so answered ones stay reachable and later ones do not. */
   furthest: number
   /** Which way the last move went, so the entrance animation agrees with the gesture. */
   dir: 'fwd' | 'back'
+  /** 'zoom' when the previous screen was left by picking, not by pressing Next. */
+  enter: 'slide' | 'zoom'
+  /** True while the outgoing screen pulls away, just before the step changes. */
+  zooming: boolean
   onBack: () => void
   onJump: (i: number) => void
   footer: React.ReactNode
@@ -74,7 +78,7 @@ export function Screen({
                 type="button"
                 disabled={!reachable}
                 onClick={() => onJump(i)}
-                aria-label={`Step ${i + 1} of ${total}`}
+                aria-label={FLOW_STEPS[i]?.short ?? `Step ${i + 1}`}
                 aria-current={i === index ? 'step' : undefined}
                 className="group flex-1 py-1.5 disabled:cursor-default"
               >
@@ -93,23 +97,15 @@ export function Screen({
         <div
           key={index}
           data-dir={dir}
-          className="flex min-h-0 w-full flex-col items-center py-2"
+          data-enter={enter}
+          className={`flex min-h-0 w-full flex-col items-center py-2 ${zooming ? 'zooming' : ''}`}
         >
-          <span className="si si-1 eyebrow shrink-0">
-            {String(index + 1).padStart(2, '0')} · {short}
-          </span>
-
-          <h1 className="si si-2 h-display mt-2.5 max-w-[16ch] shrink-0 text-center text-[2rem] sm:text-[2.5rem] lg:mt-3 lg:text-[3rem]">
+          <h1 className="si si-1 h-display mt-2.5 max-w-[16ch] shrink-0 text-center text-[2rem] sm:text-[2.5rem] lg:mt-3 lg:text-[3rem]">
             {title}
           </h1>
 
-          {note && (
-            <p className="si si-3 mt-2.5 max-w-[42ch] shrink-0 text-balance text-center text-[0.8125rem] leading-relaxed opacity-50 lg:mt-3 lg:text-[0.9375rem]">
-              {note}
-            </p>
-          )}
 
-          <div className="si si-4 mt-5 min-h-0 w-full lg:mt-7">{children}</div>
+          <div className="si si-2 mt-5 min-h-0 w-full lg:mt-7">{children}</div>
         </div>
       </div>
 

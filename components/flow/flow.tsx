@@ -3,13 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  DATES,
   FIRST_QUESTION,
   FLOW_STEPS,
   LAST_STEP,
   reachedThrough,
   type BallotDraft,
-  TRACK_LABEL,
   VENUE_CLEARED_NOTE,
   planRows,
   trackForDate,
@@ -25,6 +23,9 @@ import { RsvpStep } from './steps/rsvp'
 import { WearStep } from './steps/wear'
 import { WhenStep } from './steps/when'
 import { WhereStep } from './steps/where'
+
+/** Matches the .zooming animation in globals.css. */
+const ZOOM_MS = 240
 
 const storageKey = (name: string) => `batch-dos-ballot:${name}`
 
@@ -64,15 +65,21 @@ export function Flow({
   const [furthest, setFurthest] = useState(0)
   // Which way the last move went, so each screen enters from the side you came from.
   const [dir, setDir] = useState<'fwd' | 'back'>('fwd')
+  // Picking a date carries you straight into the next screen; these drive the
+  // outgoing screen's pull-away and the incoming screen's rise to meet it.
+  const [enter, setEnter] = useState<'slide' | 'zoom'>('slide')
+  const [zooming, setZooming] = useState(false)
   // goTo has to compare against the live step without taking it as a dependency,
   // or every advance would rebuild the callback the popstate listener closed over.
   const stepRef = useRef(0)
+  const zoomTimer = useRef<number | undefined>(undefined)
   const [draft, setDraft] = useState<BallotDraft>({})
   const [venueCleared, setVenueCleared] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
   const goTo = useCallback((next: number) => {
+    setEnter('slide')
     setDir(next >= stepRef.current ? 'fwd' : 'back')
     stepRef.current = next
     setVenueCleared(false)
@@ -102,7 +109,10 @@ export function Flow({
       setStep(next)
     }
     window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
+    return () => {
+      window.removeEventListener('popstate', onPop)
+      window.clearTimeout(zoomTimer.current)
+    }
   }, [])
 
   // A shared link that named someone skips the identity screen — but still opens on
@@ -153,6 +163,24 @@ export function Flow({
     })
   }
 
+  /** Answer and move on in one gesture, with the zoom carrying the change. */
+  const chooseAndAdvance = (key: keyof BallotDraft, value: string) => {
+    choose(key, value)
+    setZooming(true)
+    zoomTimer.current = window.setTimeout(() => {
+      setZooming(false)
+      setStep((prev) => {
+        const next = Math.min(prev + 1, LAST_STEP)
+        stepRef.current = next
+        setFurthest((f) => Math.max(f, next))
+        window.history.pushState(null, '', `#${FLOW_STEPS[next]!.id}`)
+        return next
+      })
+      setDir('fwd')
+      setEnter('zoom')
+    }, ZOOM_MS)
+  }
+
   const submit = () => {
     if (!name) return
     setError(null)
@@ -179,26 +207,23 @@ export function Flow({
   const isLast = step === LAST_STEP
   const answered = current.field ? Boolean(draft[current.field]) : step !== 0 || Boolean(name)
 
-  // Where earns a dynamic standfirst: it is the only place the track rule is explained.
-  const note =
-    current.id === 'where' && track
-      ? `${TRACK_LABEL[track]} options, because you picked ${DATES.find((d) => d.id === draft.dateId)?.label}.`
-      : current.note
 
   return (
     <Screen
       index={step}
       total={FLOW_STEPS.length}
-      short={current.short}
       title={current.title}
-      note={note}
       name={name}
       furthest={furthest}
       dir={dir}
+      enter={enter}
+      zooming={zooming}
       onBack={() => window.history.back()}
       onJump={goTo}
       footer={
-        step === 0 ? (
+        // Identity and When are answered by tapping the thing itself, so neither
+        // needs a button underneath it.
+        step === 0 || current.id === 'when' ? (
           open ? null : <p className="caption">Voting is closed.</p>
         ) : (
           <div className="flex w-full flex-col items-center">
@@ -232,7 +257,7 @@ export function Flow({
         <IdentityStep roster={roster} voted={voted} value={name} onPick={pick} />
       )}
       {current.id === 'when' && (
-        <WhenStep value={draft.dateId} onChoose={(id) => choose('dateId', id)} />
+        <WhenStep value={draft.dateId} onChoose={(id) => chooseAndAdvance('dateId', id)} />
       )}
       {current.id === 'where' && (
         <WhereStep
