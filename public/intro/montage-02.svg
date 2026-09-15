@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+<defs>
+<linearGradient id="g" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#99876f"/><stop offset="1" stop-color="#6a5a46"/></linearGradient>
+<radialGradient id="v" cx="0.5" cy="0.45" r="0.75"><stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.35"/></radialGradient>
+<filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="8"/><feColorMatrix values="0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.16 0"/></filter>
+</defs>
+<rect width="900" height="1200" fill="url(#g)"/>
+<g fill="#2b2622" fill-opacity="0.28"><circle cx="146" cy="811" r="86"/><rect x="13" y="918" width="265" height="365" rx="103"/><circle cx="309" cy="886" r="68"/><rect x="204" y="971" width="209" height="290" rx="81"/><circle cx="432" cy="850" r="77"/><rect x="313" y="946" width="237" height="326" rx="92"/><circle cx="595" cy="814" r="86"/><rect x="462" y="921" width="265" height="362" rx="103"/><circle cx="758" cy="889" r="68"/><rect x="653" y="974" width="209" height="287" rx="81"/></g>
+<rect width="900" height="1200" filter="url(#n)"/>
+<rect width="900" height="1200" fill="url(#v)"/>
+<text x="50%" y="192" text-anchor="middle" font-family="Georgia, serif" font-size="50" letter-spacing="13" fill="#f3eee6" fill-opacity="0.72">MEMORY 02</text>
+<text x="50%" y="252" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="21" letter-spacing="2" fill="#f3eee6" fill-opacity="0.5">PLACEHOLDER · REPLACE IN lib/intro/config.ts</text>
+</svg>

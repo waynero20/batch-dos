@@ -115,6 +115,31 @@ retina display renders below 2× and the hand-drawn lettering softens. A 2× or 
 from Canva would fix it. Bakhawan's hero is 828px, which is why it takes the narrow
 column — a wider one would upscale it.
 
+## The intro
+
+A story of about 68 seconds plays over `/` the first time someone opens it on a device, then
+fades into the roster. **Everything in it (text, years, photos, names, timing) lives in
+`lib/intro/config.ts`.** The components in `components/intro/` only animate what that file
+describes.
+
+- **Replace a photo:** drop the file in `public/intro/`, then update `src`, `width` and
+  `height` for that entry (`sips -g pixelWidth -g pixelHeight file.jpg`). Real JPGs go
+  through Next's image optimiser automatically; phones are served small versions.
+- **Replace text:** edit the scene's `text`. `[PLACEHOLDER TEXT]` marks the 2015 and 2017 lines.
+- **Names:** the `names` array, shown in that order. The pacing re-fits itself to any length.
+  Every name is up for at least 200 ms so it can be read; adding names means giving the
+  names scene more `duration`.
+- **Timing:** every duration is milliseconds. `pnpm test` fails if the total, handoff
+  included, goes over 70 seconds, if a name would show for under 200 ms, or if a photo
+  path doesn't exist. (The original brief said 60 s; it was raised so all 73 names are readable.)
+- **Preview:** `/?intro` replays from the start; `/?intro=6` starts at the sixth scene.
+  `Escape` or "Skip →" leaves at any point. Once it has been seen or skipped, the device
+  remembers (`localStorage["batchdos:intro-seen"]`); "Watch the intro" on `/` replays it.
+
+With `prefers-reduced-motion` the same story plays with fades only: no print moves, and
+no name ever appears with a slide-in. The intro also pauses while the tab is in the
+background.
+
 ## The programme
 
 `lib/program.ts`, transcribed from the workbook's Program tab. Times there are Excel

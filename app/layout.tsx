@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
-import { Bricolage_Grotesque, DM_Sans } from 'next/font/google'
+import { Bricolage_Grotesque, DM_Sans, Newsreader } from 'next/font/google'
+import { IntroBootScript } from '@/components/intro/intro-boot-script'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -11,6 +12,15 @@ const dmSans = DM_Sans({
 const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-bricolage',
+  display: 'swap',
+})
+
+// The intro's voice. An editorial serif that stays legible at phone sizes.
+const newsreader = Newsreader({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  axes: ['opsz'],
+  variable: '--font-newsreader',
   display: 'swap',
 })
 
@@ -41,8 +51,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="reunion">
-      <body className={`${dmSans.variable} ${bricolage.variable}`}>{children}</body>
+    // suppressHydrationWarning: the boot script sets data-intro on <html> before React hydrates.
+    <html lang="en" data-theme="reunion" suppressHydrationWarning>
+      <head>
+        <IntroBootScript />
+      </head>
+      <body className={`${dmSans.variable} ${bricolage.variable} ${newsreader.variable}`}>{children}</body>
     </html>
   )
 }
