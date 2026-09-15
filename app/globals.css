@@ -280,14 +280,22 @@ body {
       transform 300ms var(--ease-soft);
   }
   @media (hover: hover) {
-    .opt:hover { transform: translateY(-3px); box-shadow: 0 16px 34px -22px rgb(0 0 0 / 0.5); }
+    .opt:hover { transform: translateY(-3px); }
   }
   .opt:active { transform: scale(0.99); }
+
+  /*
+   * Ring only, and deliberately no drop shadow.
+   *
+   * The deck is a horizontal scroller, which means overflow-y: hidden — CSS will not
+   * let one axis scroll while the other stays visible — so anything a card casts
+   * outside its own box gets sliced off at the track's edge. A soft 40px glow cannot
+   * be given room without the track overlapping the dots beneath it and swallowing
+   * their clicks. Nothing here extends past the border, so there is nothing to clip.
+   */
   .opt[aria-pressed='true'] {
     border-color: var(--color-primary);
-    box-shadow:
-      0 0 0 2px var(--color-primary),
-      0 20px 44px -26px color-mix(in oklch, var(--color-primary) 80%, transparent);
+    box-shadow: 0 0 0 2px var(--color-primary);
   }
 
   /* A pickable day in the When calendar. Unavailable days are plain text, so only

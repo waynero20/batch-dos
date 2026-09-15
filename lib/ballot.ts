@@ -185,7 +185,16 @@ export type FoodOption = {
   id: string
   name: string
   tagline: string
-  details: readonly string[]
+  /** Where the caterer is, where the deck names one. */
+  place?: string
+  /**
+   * The price list, split into parts the card can lay out.
+   *
+   * Transcribed from single strings like "Packages ₱3,000–15,000 · 15–40 pax" so the
+   * price can be set as a price rather than buried mid-sentence. Nothing was added;
+   * Rodmer's "Medellin, Cebu" was never a price and became `place`.
+   */
+  rows: readonly { label: string; price: string; note?: string }[]
 }
 
 /** Members choose the caterer, not a specific package — package size depends on the
@@ -195,30 +204,30 @@ export const FOOD = [
     id: 'bilao-packages',
     name: 'Packages & Bilao',
     tagline: 'Lechon, bilao, full catering',
-    details: [
-      'Packages ₱3,000–15,000 · 15–40 pax',
-      'Bilao ₱1,200–3,000 · 10–25 pax',
-      'Catering ₱250–350 a head, tables and chairs in',
+    rows: [
+      { label: 'Packages', price: '₱3,000–15,000', note: '15–40 pax' },
+      { label: 'Bilao', price: '₱1,200–3,000', note: '10–25 pax' },
+      { label: 'Catering', price: '₱250–350', note: 'a head, tables and chairs in' },
     ],
   },
   {
     id: 'rodmers',
     name: "Rodmer's Lechon",
     tagline: 'Flat tray pricing',
-    details: [
-      'Chicken, pork, seafood · ₱1,200 a tray',
-      'Pasta and noodles · ₱700 a tray',
-      'Medellin, Cebu',
+    place: 'Medellin, Cebu',
+    rows: [
+      { label: 'Chicken, pork, seafood', price: '₱1,200', note: 'a tray' },
+      { label: 'Pasta and noodles', price: '₱700', note: 'a tray' },
     ],
   },
   {
     id: 'food-trays',
     name: 'Food Trays',
     tagline: 'Itemised, pick per dish',
-    details: [
-      'Small ₱300–1,000 · 10–15 pax',
-      'Medium ₱500–2,000 · 20–25 pax',
-      'Large ₱1,000–3,000 · 40–50 pax',
+    rows: [
+      { label: 'Small', price: '₱300–1,000', note: '10–15 pax' },
+      { label: 'Medium', price: '₱500–2,000', note: '20–25 pax' },
+      { label: 'Large', price: '₱1,000–3,000', note: '40–50 pax' },
     ],
   },
 ] as const satisfies readonly FoodOption[]
