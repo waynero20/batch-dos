@@ -78,8 +78,8 @@ export function Flow({
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
-  const goTo = useCallback((next: number) => {
-    setEnter('slide')
+  const goTo = useCallback((next: number, mode: 'slide' | 'zoom' = 'slide') => {
+    setEnter(mode)
     setDir(next >= stepRef.current ? 'fwd' : 'back')
     stepRef.current = next
     setVenueCleared(false)
@@ -163,21 +163,20 @@ export function Flow({
     })
   }
 
-  /** Answer and move on in one gesture, with the zoom carrying the change. */
+  /**
+   * Answer and move on in one gesture, with the zoom carrying the change.
+   *
+   * The advance goes through `goTo` like every other one. Doing it inside a `setStep`
+   * updater instead put `history.pushState` in there too — and Next patches
+   * pushState to update its Router, so a state updater that is supposed to be pure
+   * ended up updating another component mid-render.
+   */
   const chooseAndAdvance = (key: keyof BallotDraft, value: string) => {
     choose(key, value)
     setZooming(true)
     zoomTimer.current = window.setTimeout(() => {
       setZooming(false)
-      setStep((prev) => {
-        const next = Math.min(prev + 1, LAST_STEP)
-        stepRef.current = next
-        setFurthest((f) => Math.max(f, next))
-        window.history.pushState(null, '', `#${FLOW_STEPS[next]!.id}`)
-        return next
-      })
-      setDir('fwd')
-      setEnter('zoom')
+      goTo(Math.min(stepRef.current + 1, LAST_STEP), 'zoom')
     }, ZOOM_MS)
   }
 
