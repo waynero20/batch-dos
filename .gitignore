@@ -40,7 +40,6 @@ yarn-error.log*
 # catches, so deny every root-level .json and re-allow the ones the app needs.
 /*.json
 !/package.json
-!/package-lock.json
 !/tsconfig.json
 !/components.json
 !/vercel.json
