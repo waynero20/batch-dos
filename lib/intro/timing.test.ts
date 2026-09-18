@@ -79,11 +79,17 @@ describe('nameSchedule', () => {
     expect(sum(intervals)).toBeCloseTo(names.duration, 3)
   })
 
-  it('holds the first name, then only ever speeds up', () => {
+  it('holds the first name, then only ever speeds up until the closing name', () => {
     expect(intervals[0]).toBe(names.firstNameHold)
-    for (let i = 1; i < intervals.length; i++) {
+    // Every name but the last accelerates; the closing name breaks the pattern deliberately.
+    for (let i = 1; i < intervals.length - 1; i++) {
       expect(intervals[i]).toBeLessThanOrEqual(intervals[i - 1]! + 1e-9)
     }
+  })
+
+  it('lingers on the closing name instead of racing through it', () => {
+    expect(intervals.at(-1)).toBe(names.lastNameHold)
+    expect(intervals.at(-1)!).toBeGreaterThan(intervals.at(-2)!)
   })
 
   it('never shows a name too briefly to read', () => {
@@ -91,7 +97,7 @@ describe('nameSchedule', () => {
   })
 
   it('still builds momentum', () => {
-    expect(intervals[1]).toBeGreaterThan(intervals.at(-1)! * 3)
+    expect(intervals[1]).toBeGreaterThan(intervals.at(-2)! * 2.5)
   })
 
   it('keeps the first-name hold under reduced motion', () => {

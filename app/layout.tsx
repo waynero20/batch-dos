@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Bricolage_Grotesque, DM_Sans, Newsreader } from 'next/font/google'
-import { IntroBootScript } from '@/components/intro/intro-boot-script'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -51,11 +50,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // suppressHydrationWarning: the boot script sets data-intro on <html> before React hydrates.
-    <html lang="en" data-theme="reunion" suppressHydrationWarning>
-      <head>
-        <IntroBootScript />
-      </head>
+    <html lang="en" data-theme="reunion">
       <body className={`${dmSans.variable} ${bricolage.variable} ${newsreader.variable}`}>{children}</body>
     </html>
   )

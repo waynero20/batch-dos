@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { NamesScene } from '@/lib/intro/types'
 import { nameSchedule } from '@/lib/intro/timing'
-import { timingVars } from '../css-vars'
+import { ms, timingVars } from '../css-vars'
 import { Phrase } from './phrase'
+
+/** How long after the lead line starts fading in before the first name follows it. */
+const FIRST_NAME_DELAY_MS = 650
 
 /**
  * Below this a name is just swapped. A short name needs every millisecond fully visible to be
@@ -56,16 +59,23 @@ export function NameSequence({ scene, names, paused, reducedMotion }: Props) {
   }, [paused, schedule])
 
   const arrives = !reducedMotion && (schedule.intervals[index] ?? 0) >= ARRIVAL_MIN_MS
+  const isFirst = index === 0
+  const isLast = index === schedule.names.length - 1
+
+  const nameClassName = arrives ? `intro-name is-arriving${isLast ? ' is-closing' : ''}` : 'intro-name'
+  const nameStyle = isFirst
+    ? ({ '--delay': ms(FIRST_NAME_DELAY_MS) } as CSSProperties)
+    : isLast
+      ? ({ '--name-dur': ms(schedule.intervals[index] ?? 0) } as CSSProperties)
+      : undefined
 
   return (
     <div className="intro-scene intro-names" style={timingVars({ d: scene.duration, in: 900 })}>
-      <div className="intro-reveal">
-        <Phrase lead={scene.phrase} connector={scene.connector}>
-          <span key={arrives ? index : 'swap'} className={arrives ? 'intro-name is-arriving' : 'intro-name'}>
-            {schedule.names[index]}
-          </span>
-        </Phrase>
-      </div>
+      <Phrase lead={scene.phrase} connector={scene.connector} revealLead>
+        <span key={arrives ? index : 'swap'} className={nameClassName} style={nameStyle}>
+          {schedule.names[index]}
+        </span>
+      </Phrase>
     </div>
   )
 }

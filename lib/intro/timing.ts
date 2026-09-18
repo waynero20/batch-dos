@@ -76,8 +76,9 @@ export function nameIntervals(n: number, duration: number, first: number, last: 
 }
 
 /**
- * Every name and how long it stays up. The first name holds for `firstNameHold`; the rest
- * accelerate over whatever remains of the scene.
+ * Every name and how long it stays up. The first name holds for `firstNameHold`; the last
+ * name holds (and fades out) for `lastNameHold`; everything between accelerates to fill
+ * whatever remains of the scene.
  */
 export function nameSchedule(
   scene: NamesScene,
@@ -87,11 +88,22 @@ export function nameSchedule(
   const [first, ...rest] = names
   if (first === undefined) return { names: [], intervals: [] }
   const hold = Math.min(scene.firstNameHold, scene.duration)
-  const remaining = scene.duration - hold
-  const full = { names: rest, intervals: nameIntervals(rest.length, remaining, scene.firstInterval, scene.lastInterval) }
+  const afterFirst = scene.duration - hold
+
+  if (rest.length === 0) return { names: [first], intervals: [hold] }
+
+  const last = rest.at(-1)!
+  const middle = rest.slice(0, -1)
+  const lastHold = Math.min(scene.lastNameHold, afterFirst)
+  const remaining = afterFirst - lastHold
+
+  const full = {
+    names: [...middle, last],
+    intervals: [...nameIntervals(middle.length, remaining, scene.firstInterval, scene.lastInterval), lastHold],
+  }
   // Reduced motion only needs its own (thinned) schedule if the normal one swaps too quickly.
   const tooQuick = full.intervals.some((x) => x < REDUCED_MIN_NAME_MS - 1e-6)
-  const tail = reducedMotion && tooQuick ? reducedNameSchedule(rest, remaining, scene.firstInterval) : full
+  const tail = reducedMotion && tooQuick ? reducedNameSchedule(rest, afterFirst, scene.firstInterval) : full
   return { names: [first, ...tail.names], intervals: [hold, ...tail.intervals] }
 }
 

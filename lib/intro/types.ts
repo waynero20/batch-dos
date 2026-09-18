@@ -60,8 +60,10 @@ export type NamesScene = {
   firstNameHold: number
   /** How long the second name stays up; the pace accelerates from here. */
   firstInterval: number
-  /** How long the last name stays up. */
+  /** The fastest pace the acceleration reaches, just before the closing name. */
   lastInterval: number
+  /** How long the very last name lingers and fades out, breaking the accelerating pace. */
+  lastNameHold: number
 }
 
 /** The conclusion: the names stop, a moment of stillness, then the ending. */

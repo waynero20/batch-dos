@@ -4,11 +4,14 @@
 }
 
 /**
- * One accent, everything else neutral.
+ * One accent, everything else neutral — with one deliberate exception.
  *
- * The deck's navy is the only chromatic colour in the interface. Surfaces and borders
- * are true greys rather than tinted blues, so the accent has nothing to compete with.
- * The deck's yellow survives only in the dress-code swatches, which are raw hex.
+ * The deck's navy is the only chromatic colour most of the interface uses. Surfaces
+ * and borders are true greys rather than tinted blues, so the accent has nothing to
+ * compete with. The deck's yellow survives only in the dress-code swatches, which are
+ * raw hex. The exception is attendance itself: success/warning/error are real
+ * green/yellow/red so "I'm in", "Not sure yet" and "Can't make it" read as their own
+ * colours at a glance, on the RSVP screen and in the error banner.
  */
 @plugin "daisyui/theme" {
   name: 'reunion';
@@ -32,11 +35,11 @@
 
   --color-info: oklch(0.44 0 0);
   --color-info-content: oklch(1 0 0);
-  --color-success: oklch(0.2963 0.1708 266.55);
+  --color-success: oklch(0.5645 0.1453 148.63); /* green — "I'm in" */
   --color-success-content: oklch(1 0 0);
-  --color-warning: oklch(0.55 0 0);
-  --color-warning-content: oklch(1 0 0);
-  --color-error: oklch(0.505 0.18 27);
+  --color-warning: oklch(0.7852 0.1408 85.87); /* yellow — "Not sure yet" */
+  --color-warning-content: oklch(0.28 0.04 85.87);
+  --color-error: oklch(0.505 0.18 27); /* red — "Can't make it" */
   --color-error-content: oklch(1 0 0);
 
   --radius-selector: 0.375rem;
@@ -314,37 +317,6 @@ body {
   .opt[aria-pressed='true'] {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 2px var(--color-primary);
-  }
-
-  /* A pickable day in the When calendar. Unavailable days are plain text, so only
-     the three the batch can actually choose carry a target. */
-  .day {
-    display: flex;
-    height: 2.5rem;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--color-base-300);
-    border-radius: 999px;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    transition:
-      transform 260ms var(--ease-soft),
-      background-color 260ms var(--ease-soft),
-      border-color 260ms var(--ease-soft),
-      color 260ms var(--ease-soft);
-  }
-  @media (width >= 40rem) {
-    .day { height: 2.75rem; font-size: 1.0625rem; }
-  }
-  @media (hover: hover) {
-    .day:hover { border-color: var(--color-primary); transform: scale(1.07); }
-  }
-  .day:active { transform: scale(0.95); }
-  .day[aria-pressed='true'] {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-    color: var(--color-primary-content);
   }
 
   /* Small standalone label — replaces daisyUI's badge inside the flow. */

@@ -30,12 +30,7 @@
   pointer-events: none;
 }
 
-/* Returning visitor, before hydration: never paint the curtain. */
-html[data-intro='seen'] .intro-root[data-phase='pending'] {
-  display: none;
-}
-
-html[data-intro='play']:has(.intro-root) {
+html:has(.intro-root) {
   overflow: hidden;
 }
 
@@ -372,13 +367,42 @@ html[data-intro='play']:has(.intro-root) {
 }
 
 .intro-name.is-arriving {
-  animation: intro-name-in 170ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation: intro-name-in 170ms cubic-bezier(0.2, 0.7, 0.3, 1) var(--delay, 0ms) both;
 }
 
 @keyframes intro-name-in {
   from {
     opacity: 0;
     transform: translateY(0.1em);
+  }
+}
+
+/* The very last name breaks the accelerating pace: it arrives, lingers, then fades out on
+   its own instead of being cut off by the next scene. Percentages scale to its actual dwell
+   time (--name-dur), set inline from the name's scheduled interval. */
+.intro-name.is-arriving.is-closing {
+  animation-name: intro-name-close;
+  animation-duration: var(--name-dur, 1500ms);
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes intro-name-close {
+  0% {
+    opacity: 0;
+    transform: translateY(0.1em);
+  }
+  16% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-0.05em);
   }
 }
 

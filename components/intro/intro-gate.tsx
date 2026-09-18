@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState, useSyncExternalStore, type CSSPropert
 import { introConfig } from '@/lib/intro/config'
 import { handoffDuration } from '@/lib/intro/timing'
 import { ms } from './css-vars'
-import { INTRO_SEEN_KEY } from './intro-boot-script'
 import { ReunionIntro } from './reunion-intro'
 import './intro.css'
 
@@ -13,8 +12,10 @@ const SKIP_FADE_MS = 300
 type Phase = 'pending' | 'playing' | 'leaving' | 'done'
 
 /**
- * Covers the RSVP page with the intro on a first visit, then fades away to reveal it.
- * The page underneath is fully rendered the whole time, only inert.
+ * Covers the RSVP page with the intro on every visit, then fades away to reveal it.
+ * There is no "seen it already" skip — Escape or the Skip button is right there for
+ * anyone who wants past it. The page underneath is fully rendered the whole time,
+ * only inert.
  */
 export function IntroGate({ children }: { children: React.ReactNode }) {
   const [phase, setPhase] = useState<Phase>('pending')
@@ -22,28 +23,14 @@ export function IntroGate({ children }: { children: React.ReactNode }) {
   const [startAt, setStartAt] = useState(0)
   const reducedMotion = useReducedMotion()
 
-  // Decide once on the client. The boot script already hid the overlay for returning visitors.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const forced = params.has('intro')
     // `?intro=6` starts at the 6th scene: handy when checking a replaced photo or line.
-    const scene = Number.parseInt(params.get('intro') ?? '', 10)
+    const scene = Number.parseInt(new URLSearchParams(window.location.search).get('intro') ?? '', 10)
     if (scene >= 1 && scene <= introConfig.scenes.length) setStartAt(scene - 1)
-    let seen = false
-    try {
-      seen = localStorage.getItem(INTRO_SEEN_KEY) !== null
-    } catch {
-      // Private mode or blocked storage: just play it.
-    }
-    const play = forced || !seen
-    document.documentElement.dataset.intro = play ? 'play' : 'seen'
-    setPhase(play ? 'playing' : 'done')
+    setPhase('playing')
   }, [])
 
   const leave = useCallback((fadeMs: number) => {
-    try {
-      localStorage.setItem(INTRO_SEEN_KEY, new Date().toISOString())
-    } catch {}
     setLeaveMs(fadeMs)
     setPhase((p) => (p === 'playing' ? 'leaving' : p))
   }, [])
@@ -59,7 +46,6 @@ export function IntroGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (phase !== 'done') return
-    document.documentElement.dataset.intro = 'seen'
     if (new URLSearchParams(window.location.search).has('intro')) {
       window.history.replaceState(null, '', window.location.pathname)
     }

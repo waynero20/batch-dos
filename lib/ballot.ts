@@ -18,7 +18,7 @@ export type DateOption = {
   id: string
   label: string
   /**
-   * The actual day, so the ballot can draw a calendar rather than three cards.
+   * The actual day, so the ballot can show the weekday alongside the label.
    *
    * The proposal names only "December 26" and so on; these are the next occurrences
    * of those dates, and all three land on a Saturday. Revise here if the committee
@@ -324,31 +324,31 @@ export const FLOW_STEPS = [
   {
     id: 'who',
     short: 'Who',
-    title: 'Who are you?',
+    title: '',
     field: null,
   },
   {
     id: 'when',
     short: 'When',
-    title: 'When should we meet?',
+    title: 'Unsa best date makakuyog ka?',
     field: 'dateId',
   },
   {
     id: 'where',
     short: 'Where',
-    title: 'Where should we go?',
+    title: 'Asa imo bet na venue?',
     field: 'venueId',
   },
   {
     id: 'food',
     short: 'Food',
-    title: 'What should we eat?',
+    title: 'Asa diri na package ganahan ka?',
     field: 'foodId',
   },
   {
     id: 'wear',
     short: 'Wear',
-    title: 'What should we wear?',
+    title: 'Unsay theme nato?',
     field: 'paletteId',
   },
   {
@@ -400,90 +400,6 @@ export const venueSummaryForTrack = (track: Track): string => {
   return names.length <= 1
     ? (names[0] ?? '')
     : `${names.slice(0, -1).join(', ')} or ${names.at(-1)}`
-}
-
-/* -------------------------------------------------------------------------- */
-/* Calendar                                                                    */
-/* -------------------------------------------------------------------------- */
-
-export const WEEKDAY_INITIALS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const
-
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-] as const
-
-export type CalendarCell = {
-  iso: string
-  day: number
-  /** False for the leading and trailing days borrowed from the neighbouring months. */
-  inMonth: boolean
-  /** Set only on the days the batch can actually pick. */
-  dateId?: DateId
-}
-
-export type MonthGrid = {
-  year: number
-  /** 0-11. */
-  month: number
-  label: string
-  /** Always six Sunday-to-Saturday weeks, so the grid does not change height
-   *  when you page between months. */
-  weeks: CalendarCell[][]
-}
-
-const atUTC = (iso: string) => new Date(`${iso}T00:00:00Z`)
-const isoOf = (d: Date) => d.toISOString().slice(0, 10)
-
-/** One full month, drawn the way a calendar is: six weeks, Sunday first, with the
- *  neighbouring months' days filling the corners. */
-export function monthGrid(year: number, month: number): MonthGrid {
-  const first = new Date(Date.UTC(year, month, 1))
-  const cursor = new Date(first)
-  cursor.setUTCDate(1 - first.getUTCDay())
-
-  const weeks: CalendarCell[][] = []
-  for (let w = 0; w < 6; w++) {
-    const week: CalendarCell[] = []
-    for (let d = 0; d < 7; d++) {
-      const iso = isoOf(cursor)
-      week.push({
-        iso,
-        day: cursor.getUTCDate(),
-        inMonth: cursor.getUTCMonth() === month,
-        dateId: DATES.find((o) => o.iso === iso)?.id,
-      })
-      cursor.setUTCDate(cursor.getUTCDate() + 1)
-    }
-    weeks.push(week)
-  }
-
-  return { year, month, label: `${MONTHS[month]} ${year}`, weeks }
-}
-
-/**
- * The months worth paging through: only those holding a date the batch can pick.
- *
- * The calendar is a real one, but it is not an open-ended date picker — there is no
- * reason to let anyone wander into March.
- */
-export function candidateMonths(): { year: number; month: number }[] {
-  const seen = new Map<string, { year: number; month: number }>()
-  for (const option of DATES) {
-    const d = atUTC(option.iso)
-    const key = `${d.getUTCFullYear()}-${d.getUTCMonth()}`
-    if (!seen.has(key)) seen.set(key, { year: d.getUTCFullYear(), month: d.getUTCMonth() })
-  }
-  return [...seen.values()].sort((a, b) => a.year - b.year || a.month - b.month)
-}
-
-/** Which month a given option falls in, as an index into `candidateMonths()`. */
-export function monthIndexOf(dateId: DateId): number {
-  const option = DATES.find((d) => d.id === dateId)!
-  const d = atUTC(option.iso)
-  return candidateMonths().findIndex(
-    (m) => m.year === d.getUTCFullYear() && m.month === d.getUTCMonth(),
-  )
 }
 
 /* -------------------------------------------------------------------------- */

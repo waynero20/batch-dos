@@ -6,6 +6,17 @@ import { OptionCard } from '../option-card'
 /** One glyph each: a tick, a dash, a cross. */
 const GLYPH = ['m4 12.5 5.2 5.2L20 7', 'M5 12h14', 'm6 6 12 12M18 6 6 18'] as const
 
+/**
+ * Green, yellow, red — attendance reads as its own colour, not the one house accent.
+ * Written out in full: Tailwind only picks up classes it can see as literal strings,
+ * not ones built from a template at runtime.
+ */
+const TONE = [
+  { idle: 'bg-success/10 text-success', selected: 'bg-success text-success-content' },
+  { idle: 'bg-warning/10 text-warning', selected: 'bg-warning text-warning-content' },
+  { idle: 'bg-error/10 text-error', selected: 'bg-error text-error-content' },
+] as const
+
 /** "14 September" — the day they last voted, not the hour. */
 const dayOf = (iso: string) => {
   const d = new Date(iso)
@@ -53,12 +64,13 @@ export function RsvpStep({
       <div className="mt-4 grid w-full gap-2.5 sm:grid-cols-3 lg:mt-6 lg:gap-4">
         {ATTENDANCE.map((a, i) => {
           const selected = value === a.id
+          const tone = TONE[i]!
           return (
             <OptionCard key={a.id} selected={selected} showCheck={false} onSelect={() => onChoose(a.id)}>
               <div className="flex items-center justify-center gap-3 px-4 py-3.5 sm:flex-col sm:gap-2.5 sm:py-6">
                 <span
                   className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
-                    selected ? 'bg-primary text-primary-content' : 'bg-base-200 opacity-40'
+                    selected ? tone.selected : tone.idle
                   }`}
                 >
                   <svg
