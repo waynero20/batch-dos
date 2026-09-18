@@ -324,7 +324,7 @@ export const FLOW_STEPS = [
   {
     id: 'who',
     short: 'Who',
-    title: 'Kinsa ka?',
+    title: '',
     field: null,
   },
   {

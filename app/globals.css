@@ -72,6 +72,7 @@ body {
      more pixels than the source files have (see .bleed). */
   .shell {
     width: 100%;
+    min-width: 0;
     margin-inline: auto;
     max-width: 90rem;
     padding-inline: 1.25rem;
