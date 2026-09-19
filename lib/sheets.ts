@@ -253,6 +253,49 @@ export type VoteRow = {
   attending: string
 }
 
+/**
+ * The rows a re-seed writes, one per name in masterlist order.
+ *
+ * A seed rewrites the whole tab, including ballots it did not collect, so every
+ * answer has to be read back and carried across. The timestamp comes from
+ * `serials` rather than from the row's own `votedAt`, because the latter is the
+ * text the cell displays as and writing that back would leave a string behind a
+ * date format.
+ *
+ * Those are two different reads of the same column, and when they disagree the
+ * disagreement used to be silent: a row `existing` called cast, `serials` had
+ * nothing for, and the seed wrote a blank over the only cell marking it as voted.
+ * Three ballots were erased that way. Now it refuses, and names them.
+ */
+export function seedRows(
+  names: readonly string[],
+  existing: Map<string, VoteRow>,
+  serials: Map<string, CellValue>,
+): CellValue[][] {
+  const losing = names.filter((n) => existing.get(n)?.votedAt?.trim() && !serials.has(n))
+  if (losing.length > 0) {
+    throw new Error(
+      `Refusing to seed: ${losing.length} cast ballot(s) would lose their timestamp — ` +
+        `${losing.join('; ')}. Their answers are on the tab but no timestamp could be ` +
+        `read back, so seeding would mark them as never having voted.`,
+    )
+  }
+
+  return names.map((name) => {
+    const prior = existing.get(name)
+    return [
+      serials.get(name) ?? '',
+      name,
+      prior?.track ?? '',
+      prior?.date ?? '',
+      prior?.venue ?? '',
+      prior?.food ?? '',
+      prior?.palette ?? '',
+      prior?.attending ?? '',
+    ]
+  })
+}
+
 export async function readVotes(cache: CacheHint = 'no-store'): Promise<VoteRow[]> {
   const rows = await readRange(`${VOTES_TAB}!A2:H200`, cache)
   return rows
@@ -284,15 +327,40 @@ export async function readRangeRaw(range: string): Promise<CellValue[][]> {
   return data.values ?? []
 }
 
-/** When each member voted, as the serial actually stored — keyed by name. */
-export async function readVoteSerials(): Promise<Map<string, number>> {
-  const serials = new Map<string, number>()
-  for (const [votedAt, name] of await readRangeRaw(`${VOTES_TAB}!A2:B200`)) {
-    if (typeof name === 'string' && name.trim() && typeof votedAt === 'number') {
-      serials.set(name.trim(), votedAt)
-    }
+/**
+ * A stored timestamp as it should be written back, or undefined if the row is blank.
+ *
+ * Column A is a date now, but it was ISO text before that, and both are still on the
+ * tab. A re-seed rewrites every row, so anything this refuses to return is written
+ * away as blank — and a blank column A is what marks a member as not having voted.
+ * So text is converted where it parses and kept verbatim where it does not; the one
+ * thing it must never do is drop a value it did not recognise.
+ */
+function storedTimestamp(votedAt: CellValue | undefined): CellValue | undefined {
+  if (typeof votedAt === 'number') return votedAt
+  if (typeof votedAt !== 'string') return undefined
+
+  const text = votedAt.trim()
+  if (!text) return undefined
+
+  const parsed = new Date(text)
+  return Number.isNaN(parsed.getTime()) ? text : dateSerial(parsed)
+}
+
+/** When each member voted, as it should be written back — keyed by name. */
+export function voteSerials(rows: CellValue[][]): Map<string, CellValue> {
+  const serials = new Map<string, CellValue>()
+  for (const [votedAt, name] of rows) {
+    if (typeof name !== 'string' || !name.trim()) continue
+
+    const stamp = storedTimestamp(votedAt)
+    if (stamp !== undefined) serials.set(name.trim(), stamp)
   }
   return serials
+}
+
+export async function readVoteSerials(): Promise<Map<string, CellValue>> {
+  return voteSerials(await readRangeRaw(`${VOTES_TAB}!A2:B200`))
 }
 
 /** A member has voted once their row carries a timestamp. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ATTENDANCE, DATES, FOOD, VENUES } from './ballot'
-import { dateSerial } from './sheets'
+import { dateSerial, seedRows, voteSerials, type VoteRow } from './sheets'
 import { buildTally, tallyWrites } from './votes-sheet'
 
 /**
@@ -29,6 +29,113 @@ describe('dateSerial', () => {
     expect(dateSerial(midnight) % 1).toBe(0)
     expect(dateSerial(noon) - dateSerial(midnight)).toBeCloseTo(0.5, 10)
     expect(dateSerial(noon)).toBeGreaterThan(dateSerial(midnight))
+  })
+})
+
+/**
+ * What a re-seed carries across.
+ *
+ * `pnpm seed` rewrites every row, so whatever this function fails to return is
+ * written away as blank. It once returned only numbers, and the three ballots then
+ * holding an ISO string — cast before column A became a date — were silently
+ * stripped of their timestamp, which is the only thing marking a row as voted.
+ */
+describe('voteSerials', () => {
+  it('carries a numeric serial across untouched', () => {
+    const serials = voteSerials([[46_284.5, 'Rondina, Wayne']])
+    expect(serials.get('Rondina, Wayne')).toBe(46_284.5)
+  })
+
+  it('converts an ISO timestamp rather than dropping it', () => {
+    // The bug: a ballot cast by a build that wrote ISO text still counts as cast.
+    const iso = '2026-09-19T12:00:00+08:00'
+    const serials = voteSerials([[iso, 'Desabille, Nestor']])
+    expect(serials.get('Desabille, Nestor')).toBe(dateSerial(new Date(iso)))
+  })
+
+  it('keeps text it cannot parse rather than losing the row', () => {
+    const serials = voteSerials([['voted at the reunion meeting', 'Monteclar, Joanna Paula']])
+    expect(serials.get('Monteclar, Joanna Paula')).toBe('voted at the reunion meeting')
+  })
+
+  it('leaves a member who has not voted out of the map', () => {
+    const serials = voteSerials([
+      ['', 'Alcoverez, Iris'],
+      ['   ', 'Booc, Daniel Lloyd'],
+    ])
+    expect(serials.has('Alcoverez, Iris')).toBe(false)
+    expect(serials.has('Booc, Daniel Lloyd')).toBe(false)
+  })
+
+  it('ignores the blank rows the seed pads with', () => {
+    expect(voteSerials([[46_284, ''], ['', '']]).size).toBe(0)
+  })
+})
+
+/**
+ * The rows a re-seed writes over the whole tab.
+ *
+ * Seeding is the one operation that rewrites ballots it did not collect, so the
+ * cost of a quiet mistake here is somebody's vote. It refuses rather than writes a
+ * row it cannot account for.
+ */
+describe('seedRows', () => {
+  const ballot = (over: Partial<VoteRow> = {}): VoteRow => ({
+    row: 2,
+    name: 'Desabille, Nestor',
+    votedAt: 'September 19, 2026',
+    track: 'Province',
+    date: 'December 26',
+    venue: 'Purita Farms',
+    food: 'Packages & Bilao',
+    palette: '',
+    attending: "I'm in",
+    ...over,
+  })
+
+  it('refuses to seed when a cast ballot would lose its timestamp', () => {
+    // The seed that erased three of them counted what it was preserving from one
+    // read and wrote the timestamps from another, so the two could disagree in
+    // silence. Disagreeing is now the thing that stops it.
+    const existing = new Map([['Desabille, Nestor', ballot()]])
+
+    expect(() => seedRows(['Desabille, Nestor'], existing, new Map())).toThrow(
+      /Desabille, Nestor/,
+    )
+  })
+
+  it('carries the timestamp from the stored serial, not the displayed text', () => {
+    const existing = new Map([['Desabille, Nestor', ballot()]])
+    const serials = new Map([['Desabille, Nestor', 46_284.5]])
+
+    expect(seedRows(['Desabille, Nestor'], existing, serials)[0]![0]).toBe(46_284.5)
+  })
+
+  it('keeps every answer on the row it came from', () => {
+    const existing = new Map([['Desabille, Nestor', ballot()]])
+    const serials = new Map([['Desabille, Nestor', 46_284.5]])
+
+    expect(seedRows(['Desabille, Nestor'], existing, serials)[0]).toEqual([
+      46_284.5,
+      'Desabille, Nestor',
+      'Province',
+      'December 26',
+      'Purita Farms',
+      'Packages & Bilao',
+      '',
+      "I'm in",
+    ])
+  })
+
+  it('writes a member who has not voted as a blank row under their name', () => {
+    const row = seedRows(['Alcoverez, Iris'], new Map(), new Map())[0]!
+    expect(row[1]).toBe('Alcoverez, Iris')
+    expect(row.filter((c) => c !== '')).toEqual(['Alcoverez, Iris'])
+  })
+
+  it('returns one row per name, in masterlist order', () => {
+    const names = ['Alcoverez, Iris', 'Bonsucan, Vijay', 'Mondejar, John Alfred']
+    expect(seedRows(names, new Map(), new Map()).map((r) => r[1])).toEqual(names)
   })
 })
 

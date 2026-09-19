@@ -15,6 +15,7 @@ import {
   readMasterlist,
   readVoteSerials,
   readVotes,
+  seedRows,
   tabTitles,
   writeRange,
   type CellValue,
@@ -40,21 +41,14 @@ async function main() {
   // that back would leave a string behind the "Month Day Year" format, so the serial
   // is read separately and carried across untouched.
   const serials = await readVoteSerials()
-  const kept = names.filter((n) => existing.get(n)?.votedAt).length
 
-  const rows: CellValue[][] = names.map((name) => {
-    const prior = existing.get(name)
-    return [
-      serials.get(name) ?? '',
-      name,
-      prior?.track ?? '',
-      prior?.date ?? '',
-      prior?.venue ?? '',
-      prior?.food ?? '',
-      prior?.palette ?? '',
-      prior?.attending ?? '',
-    ]
-  })
+  // Throws rather than writing if any cast ballot would lose its timestamp.
+  const rows: CellValue[][] = seedRows(names, existing, serials)
+
+  // Counted off the rows actually being written, so what is reported and what is
+  // stored cannot disagree — reading them from two places is how three ballots were
+  // erased while the log said they had been preserved.
+  const kept = rows.filter((r) => r[0] !== '').length
 
   // Pad past the previous extent so removed members leave no orphan rows behind.
   const padTo = Math.max(rows.length, existing.size) + 1
