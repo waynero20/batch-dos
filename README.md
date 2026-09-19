@@ -40,10 +40,29 @@ The workbook must be shared with `GOOGLE_SERVICE_ACCOUNT_EMAIL` as **Editor**.
 |---|---|
 | `pnpm dev` | Development server |
 | `pnpm seed` | Regenerate the roster from the Attendees tab and re-seed the Votes tab. Safe to re-run — existing ballots are preserved. |
+| `pnpm format-votes` | Lay out the Votes tab for reading: date formats, widths, the live tally in J:L and the pie charts. Safe to re-run. |
 | `pnpm votes` | Print the current tally in the terminal |
 | `pnpm clear-vote "Surname, Firstname"` | Blank one member's ballot so they can vote again |
 | `pnpm test` | Ballot validation tests |
 | `pnpm typecheck` | `tsc --noEmit` |
+
+## Reading the Votes tab
+
+`pnpm format-votes` sets the tab up for the committee to read directly:
+
+- **Column A** is a real date, displayed as `Month Day Year`. It is stored as a Sheets
+  date serial and dated by Cebu's clock, so a ballot cast at 9pm is dated that evening
+  rather than the next morning UTC. Sorting column A sorts chronologically.
+- **J:L** is a live tally — turnout, then one block per question, each with a vote count
+  and its share. These are `COUNTIF` formulas, not numbers, so they stay right as
+  ballots arrive; nothing needs re-running.
+- **Column N** holds one pie per question, each slice labelled with its own name and
+  percentage. The pie is for the glance; the numbers beside it are for the close calls.
+
+The tally and the pies are generated from `lib/ballot.ts`, so they cannot drift from the
+ballot itself — re-run the script after revising the proposal and the blocks follow.
+It replaces its own charts rather than stacking new ones, and never touches A:H beyond
+formatting.
 
 ## Running the vote
 

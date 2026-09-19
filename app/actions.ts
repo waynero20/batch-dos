@@ -12,9 +12,9 @@ import {
   TRACK_LABEL,
 } from '@/lib/ballot'
 import type { BallotDraft, DateId } from '@/lib/ballot'
-import { isMember } from '@/lib/roster'
+import { ROSTER, isMember } from '@/lib/roster'
 import { ballotSchema } from '@/lib/schema'
-import { VOTES_TAB, hasVoted, readVotes, writeRange } from '@/lib/sheets'
+import { VOTES_TAB, dateSerial, hasVoted, readVotes, writeRange } from '@/lib/sheets'
 import { votingOpen } from '@/lib/config'
 
 export type SubmitResult = { ok: true } | { ok: false; error: string }
@@ -44,6 +44,27 @@ export async function fetchBallot(memberName: string): Promise<ExistingBallot | 
     return { votedAt: row.votedAt, draft: draftFromLabels(row) }
   } catch (err) {
     console.error('[fetchBallot]', err)
+    return null
+  }
+}
+
+/**
+ * How many ballots are in, and how many there are to come.
+ *
+ * The two counts and nothing else. This is rendered to whoever has just voted, and
+ * it is read off a tab that holds every member's name beside their answers — so the
+ * numbers are taken here, on the server, and nothing else from those rows is ever
+ * returned. Who voted, and what they picked, stays on the committee's results page.
+ *
+ * Null rather than a zero if the sheet cannot be reached: a count that failed to
+ * load is worth leaving out, and "0 of 73 have voted" would be a lie.
+ */
+export async function voteCount(): Promise<{ cast: number; total: number } | null> {
+  try {
+    const cast = (await readVotes()).filter(hasVoted).length
+    return { cast, total: ROSTER.length }
+  } catch (err) {
+    console.error('[voteCount]', err)
     return null
   }
 }
@@ -89,7 +110,10 @@ export async function submitBallot(input: unknown): Promise<SubmitResult> {
     // like "bakhawan-beach-home" would make them do the translation by hand.
     await writeRange(`${VOTES_TAB}!A${target.row}:H${target.row}`, [
       [
-        new Date().toISOString(),
+        // A date rather than ISO text, so the committee's column A sorts as a date
+        // and displays as one. Still a RAW write: USER_ENTERED would parse the
+        // "December 26" three cells along and store a date where a label belongs.
+        dateSerial(new Date()),
         ballot.memberName,
         TRACK_LABEL[track],
         labelOf(DATES, ballot.dateId, (d) => d.label),

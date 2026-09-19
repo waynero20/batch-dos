@@ -13,9 +13,11 @@ import {
   VOTE_HEADERS,
   createTab,
   readMasterlist,
+  readVoteSerials,
   readVotes,
   tabTitles,
   writeRange,
+  type CellValue,
 } from '../lib/sheets'
 
 const ROSTER_PATH = new URL('../lib/roster.ts', import.meta.url).pathname
@@ -33,12 +35,17 @@ async function main() {
   // Preserve anything already cast. Keyed by name, because a member's row index
   // shifts whenever the masterlist gains or loses someone.
   const existing = new Map((await readVotes()).map((v) => [v.name, v]))
+
+  // Column A is a date, and `readVotes` hands back the text it displays as. Writing
+  // that back would leave a string behind the "Month Day Year" format, so the serial
+  // is read separately and carried across untouched.
+  const serials = await readVoteSerials()
   const kept = names.filter((n) => existing.get(n)?.votedAt).length
 
-  const rows = names.map((name) => {
+  const rows: CellValue[][] = names.map((name) => {
     const prior = existing.get(name)
     return [
-      prior?.votedAt ?? '',
+      serials.get(name) ?? '',
       name,
       prior?.track ?? '',
       prior?.date ?? '',
@@ -51,7 +58,7 @@ async function main() {
 
   // Pad past the previous extent so removed members leave no orphan rows behind.
   const padTo = Math.max(rows.length, existing.size) + 1
-  while (rows.length < padTo) rows.push(Array(VOTE_HEADERS.length).fill(''))
+  while (rows.length < padTo) rows.push(Array<CellValue>(VOTE_HEADERS.length).fill(''))
 
   await writeRange(`${VOTES_TAB}!A1:H${rows.length + 1}`, [[...VOTE_HEADERS], ...rows])
   console.log(`Seeded ${names.length} rows into ${VOTES_TAB} (${kept} existing ballots preserved).`)

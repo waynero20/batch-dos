@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "seed": "tsx --env-file=.env.local scripts/seed-roster.ts",
     "votes": "tsx --env-file=.env.local scripts/show-votes.ts",
+    "format-votes": "tsx --env-file=.env.local scripts/format-votes.ts",
     "clear-vote": "tsx --env-file=.env.local scripts/clear-vote.ts"
   },
   "dependencies": {

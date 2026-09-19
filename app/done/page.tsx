@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { voteCount } from '@/app/actions'
 import { ProgramTimeline } from '@/components/program-timeline'
 import { PALETTES } from '@/lib/ballot'
 import { PROGRAM } from '@/lib/program'
@@ -13,6 +14,10 @@ export default async function DonePage({
   const firstName = name?.split(',')[1]?.trim()
   const amended = changed === '1'
   const half = Math.ceil(PROGRAM.length / 2)
+
+  // Read uncached: the vote that just landed is the whole reason to show this, and a
+  // member who cannot find themselves in the count assumes it did not save.
+  const count = await voteCount()
 
   return (
     <main>
@@ -50,6 +55,27 @@ export default async function DonePage({
                 : 'Your vote is in. The committee decides once everyone has voted.'}
             </p>
             <p className="caption mt-2">You can come back and change it any time.</p>
+
+            {/* The count, and only the count. One number is a figure, not a chart —
+                the bar underneath is the ratio, which is the other half of "how far
+                along are we". Nothing here says who voted or what they chose. */}
+            {count && (
+              <div className="mt-8 max-w-[22rem]">
+                <div className="flex items-baseline gap-2">
+                  <span className="h-display text-[2.5rem] tabular-nums lg:text-5xl">
+                    {count.cast}
+                  </span>
+                  <span className="text-sm opacity-55">
+                    of {count.total} have voted
+                  </span>
+                </div>
+                <progress
+                  className="progress progress-primary mt-2.5 h-1.5 w-full"
+                  value={count.cast}
+                  max={count.total}
+                />
+              </div>
+            )}
 
             <Link href="/" className="btn btn-outline btn-block mt-9 rounded-field lg:w-auto lg:min-w-[16rem]">
               Back to the start
