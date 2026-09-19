@@ -29,7 +29,7 @@ describe('FLOW_STEPS', () => {
 
   it('asks for each ballot field exactly once', () => {
     const fields = FLOW_STEPS.map((s) => s.field).filter((f) => f !== null)
-    expect(fields).toEqual(['dateId', 'venueId', 'foodId', 'paletteId', 'attending'])
+    expect(fields).toEqual(['dateId', 'venueId', 'foodId', 'attending'])
     expect(new Set(fields).size).toBe(fields.length)
   })
 

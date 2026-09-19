@@ -18,7 +18,13 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 export const VOTES_TAB = 'Votes'
 export const ATTENDEES_TAB = 'Attendees'
 
-/** Votes!A:H — one row per member, in masterlist order. */
+/**
+ * Votes!A:H — one row per member, in masterlist order.
+ *
+ * `Palette` is kept although the batch no longer votes on one: five ballots were
+ * cast while it did, and dropping the column would slide their answers one cell
+ * left. It stays, holding those five answers, and new ballots write it blank.
+ */
 export const VOTE_HEADERS = [
   'Timestamp',
   'Name',

@@ -4,7 +4,7 @@
  * The chrome every choosable option shares: the border, the selected ring, and the
  * check. Deliberately unopinionated about what goes inside — each screen composes its
  * own media and body, because a venue photo has to flex to the deck's height while a
- * palette's swatch field is fixed.
+ * caterer's price list is natural height.
  *
  * All the styling lives in `.opt`, so hover, press and selected states move on the
  * same curve as the rest of the flow.

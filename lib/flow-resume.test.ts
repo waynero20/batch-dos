@@ -29,7 +29,6 @@ describe('reachedThrough', () => {
       dateId: 'dec-26',
       venueId: 'purita-farms',
       foodId: 'bilao-packages',
-      paletteId: 'bleu-ocean',
       attending: 'yes',
     })
     expect(reachedThrough(complete)).toBe(LAST_STEP)

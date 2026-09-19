@@ -232,42 +232,6 @@ export const FOOD = [
   },
 ] as const satisfies readonly FoodOption[]
 
-export type PaletteOption = {
-  id: string
-  name: string
-  description: string
-  swatches: readonly string[]
-}
-
-/** Grouped from the moodboard slide. The deck names individual shades but never
- *  groups them, so these sets and their names are the committee's to revise. */
-export const PALETTES = [
-  {
-    id: 'bleu-ocean',
-    name: 'Bleu Océan',
-    description: 'Deep navy with sky blue and butter',
-    swatches: ['#0A1680', '#93B2F8', '#FBEDB0', '#F7B94C', '#FCFDFF'],
-  },
-  {
-    id: 'space-cadet',
-    name: 'Space Cadet',
-    description: 'Ink navy, bright yellow, alice blue',
-    swatches: ['#1A1A55', '#FEE14E', '#EFF8FF'],
-  },
-  {
-    id: 'heritage',
-    name: 'Heritage',
-    description: 'Muted teal-navy with cream and stone',
-    swatches: ['#104B6C', '#F5EFC1', '#E3DED8'],
-  },
-  {
-    id: 'golden-hour',
-    name: 'Golden Hour',
-    description: 'Slate blue, deep gold and sand',
-    swatches: ['#224668', '#C9930A', '#D5BFA7'],
-  },
-] as const satisfies readonly PaletteOption[]
-
 export type AttendanceOption = {
   id: string
   label: string
@@ -282,7 +246,6 @@ export const ATTENDANCE = [
 export type DateId = (typeof DATES)[number]['id']
 export type VenueId = (typeof VENUES)[number]['id']
 export type FoodId = (typeof FOOD)[number]['id']
-export type PaletteId = (typeof PALETTES)[number]['id']
 export type AttendanceId = (typeof ATTENDANCE)[number]['id']
 
 export const trackForDate = (id: DateId): Track =>
@@ -296,13 +259,11 @@ export const planRows = (d: {
   dateId?: string
   venueId?: string
   foodId?: string
-  paletteId?: string
 }) =>
   [
     { step: 1, label: 'When', value: DATES.find((x) => x.id === d.dateId)?.label },
     { step: 2, label: 'Where', value: VENUES.find((x) => x.id === d.venueId)?.name },
     { step: 3, label: 'Food', value: FOOD.find((x) => x.id === d.foodId)?.name },
-    { step: 4, label: 'Wear', value: PALETTES.find((x) => x.id === d.paletteId)?.name },
   ] as const
 
 /**
@@ -317,7 +278,7 @@ export type FlowStep = {
   id: string
   short: string
   title: string
-  field: 'dateId' | 'venueId' | 'foodId' | 'paletteId' | 'attending' | null
+  field: 'dateId' | 'venueId' | 'foodId' | 'attending' | null
 }
 
 export const FLOW_STEPS = [
@@ -344,12 +305,6 @@ export const FLOW_STEPS = [
     short: 'Food',
     title: 'Asa diri na package ganahan ka?',
     field: 'foodId',
-  },
-  {
-    id: 'wear',
-    short: 'Wear',
-    title: 'Unsay theme nato?',
-    field: 'paletteId',
   },
   {
     id: 'day',
@@ -421,7 +376,6 @@ export function draftFromLabels(row: {
   date?: string
   venue?: string
   food?: string
-  palette?: string
   attending?: string
 }): BallotDraft {
   const match = <T extends { id: string }>(
@@ -434,13 +388,11 @@ export function draftFromLabels(row: {
   const dateId = match(DATES, row.date, (d) => d.label)
   const venueId = match(VENUES, row.venue, (v) => v.name)
   const foodId = match(FOOD, row.food, (f) => f.name)
-  const paletteId = match(PALETTES, row.palette, (p) => p.name)
   const attending = match(ATTENDANCE, row.attending, (a) => a.label)
 
   if (dateId) draft.dateId = dateId
   if (venueId) draft.venueId = venueId
   if (foodId) draft.foodId = foodId
-  if (paletteId) draft.paletteId = paletteId
   if (attending) draft.attending = attending
 
   // A venue from the other track cannot survive a date change, and the schema would

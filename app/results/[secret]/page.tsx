@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { ATTENDANCE, DATES, FOOD, PALETTES, VENUES } from '@/lib/ballot'
+import { ATTENDANCE, DATES, FOOD, VENUES } from '@/lib/ballot'
 import { ROSTER } from '@/lib/roster'
 import { hasVoted, readVotes, type VoteRow } from '@/lib/sheets'
 
@@ -24,7 +24,6 @@ export default async function ResultsPage({ params }: { params: Promise<{ secret
     { title: 'When', data: tally(cast, 'date', DATES.map((d) => d.label)) },
     { title: 'Where', data: tally(cast, 'venue', VENUES.map((v) => v.name)) },
     { title: 'Food', data: tally(cast, 'food', FOOD.map((f) => f.name)) },
-    { title: 'Dress code', data: tally(cast, 'palette', PALETTES.map((p) => p.name)) },
   ]
 
   return (

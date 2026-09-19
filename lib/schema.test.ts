@@ -7,7 +7,6 @@ const valid = {
   dateId: 'dec-26',
   venueId: 'purita-farms',
   foodId: 'rodmers',
-  paletteId: 'bleu-ocean',
   attending: 'yes',
 } as const
 
@@ -47,7 +46,7 @@ describe('ballotSchema', () => {
     })
   })
 
-  it.each(['dateId', 'venueId', 'foodId', 'paletteId', 'attending'] as const)(
+  it.each(['dateId', 'venueId', 'foodId', 'attending'] as const)(
     'rejects an unknown %s',
     (field) => {
       expect(ballotSchema.safeParse({ ...valid, [field]: 'not-a-real-option' }).success).toBe(false)
@@ -64,7 +63,7 @@ describe('ballotSchema', () => {
   })
 
   it('rejects a ballot missing a required answer', () => {
-    const { paletteId, ...partial } = valid
+    const { foodId, ...partial } = valid
     expect(ballotSchema.safeParse(partial).success).toBe(false)
   })
 })

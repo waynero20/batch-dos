@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ATTENDANCE, DATES, FOOD, PALETTES, VENUES, draftFromLabels } from './ballot'
+import { ATTENDANCE, DATES, FOOD, VENUES, draftFromLabels } from './ballot'
 import { ballotSchema } from './schema'
 
 /**
@@ -13,14 +13,12 @@ describe('draftFromLabels', () => {
       date: DATES[0].label,
       venue: VENUES[0].name,
       food: FOOD[0].name,
-      palette: PALETTES[0].name,
       attending: ATTENDANCE[0].label,
     }
     expect(draftFromLabels(written)).toEqual({
       dateId: DATES[0].id,
       venueId: VENUES[0].id,
       foodId: FOOD[0].id,
-      paletteId: PALETTES[0].id,
       attending: ATTENDANCE[0].id,
     })
   })
@@ -30,7 +28,6 @@ describe('draftFromLabels', () => {
       date: 'January 9',
       venue: 'Island Hopping',
       food: 'Food Trays',
-      palette: 'Heritage',
       attending: "I'm in",
     })
     const parsed = ballotSchema.safeParse({ memberName: 'Rondina, Wayne', ...draft })

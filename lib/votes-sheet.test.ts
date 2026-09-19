@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ATTENDANCE, DATES, FOOD, PALETTES, VENUES } from './ballot'
+import { ATTENDANCE, DATES, FOOD, VENUES } from './ballot'
 import { dateSerial } from './sheets'
 import { buildTally, tallyWrites } from './votes-sheet'
 
@@ -51,7 +51,6 @@ describe('buildTally', () => {
       'When · Date',
       'Where · Venue',
       'Food',
-      'Wear · Palette',
       'RSVP · Attending',
     ])
   })
@@ -61,7 +60,6 @@ describe('buildTally', () => {
       DATES.map((d) => d.label),
       VENUES.map((v) => v.name),
       FOOD.map((f) => f.name),
-      PALETTES.map((p) => p.name),
       ATTENDANCE.map((a) => a.label),
     ]
 
@@ -73,7 +71,9 @@ describe('buildTally', () => {
   })
 
   it('counts each option against the column that actually holds it', () => {
-    const column = ['D', 'E', 'F', 'G', 'H']
+    // G is skipped: the Palette column is still in the sheet, holding the ballots
+    // cast while that question existed, but nothing tallies it any more.
+    const column = ['D', 'E', 'F', 'H']
 
     tally.blocks.forEach((block, i) => {
       for (let r = block.firstRow; r <= block.lastRow; r++) {
@@ -119,7 +119,7 @@ describe('tallyWrites', () => {
 
   it('sends the labels RAW, so a date-shaped one stays a label', () => {
     expect(labels!.input).toBe('RAW')
-    expect(labels!.range).toBe('Votes!J1:J31')
+    expect(labels!.range).toBe('Votes!J1:J25')
 
     const column = labels!.values.flat()
     for (const dateLabel of DATES.map((d) => d.label)) {
@@ -129,7 +129,7 @@ describe('tallyWrites', () => {
 
   it('sends only the two formula columns to be parsed', () => {
     expect(formulas!.input).toBe('USER_ENTERED')
-    expect(formulas!.range).toBe('Votes!K1:L31')
+    expect(formulas!.range).toBe('Votes!K1:L25')
 
     for (const row of formulas!.values) expect(row).toHaveLength(2)
     for (const cell of formulas!.values.flat()) {

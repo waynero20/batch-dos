@@ -10,7 +10,7 @@
  * committee opens the tab while voting is still running, and a number written once
  * would be wrong by the time they read it.
  */
-import { ATTENDANCE, DATES, FOOD, PALETTES, VENUES } from './ballot'
+import { ATTENDANCE, DATES, FOOD, VENUES } from './ballot'
 import { VOTE_HEADERS, type CellValue } from './sheets'
 
 /* -------------------------------------------------------------------------- */
@@ -52,13 +52,14 @@ type Question = {
  * One entry per question the ballot asks, in the order the flow asks them.
  *
  * `who` and `day` are left out: neither records an answer, so neither has anything
- * to count.
+ * to count. Palette is left out too — the batch no longer votes on one. Its column
+ * stays in the sheet for the five ballots cast while it did, but a tally of a
+ * question nobody is being asked would only invite the committee to read it as live.
  */
 const QUESTIONS: readonly Question[] = [
   { short: 'When', header: 'Date', options: DATES.map((d) => d.label) },
   { short: 'Where', header: 'Venue', options: VENUES.map((v) => v.name) },
   { short: 'Food', header: 'Food', options: FOOD.map((f) => f.name) },
-  { short: 'Wear', header: 'Palette', options: PALETTES.map((p) => p.name) },
   { short: 'RSVP', header: 'Attending', options: ATTENDANCE.map((a) => a.label) },
 ]
 

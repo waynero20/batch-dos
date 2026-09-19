@@ -3,7 +3,6 @@ import {
   ATTENDANCE,
   DATES,
   FOOD,
-  PALETTES,
   TRACK_LABEL,
   VENUES,
   type DateId,
@@ -28,7 +27,6 @@ export const ballotSchema = z
     dateId: z.enum(idsOf(DATES)),
     venueId: z.enum(idsOf(VENUES)),
     foodId: z.enum(idsOf(FOOD)),
-    paletteId: z.enum(idsOf(PALETTES)),
     attending: z.enum(idsOf(ATTENDANCE)),
   })
   .superRefine((ballot, ctx) => {

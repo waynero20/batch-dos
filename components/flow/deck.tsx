@@ -42,8 +42,8 @@ export function Deck<T>({
   /**
    * Explicit track height, in `dvh` so it shrinks with the screen.
    *
-   * Required for any card whose media is `flex-1`: a venue photo or a palette's
-   * swatch field collapses to nothing without a definite height to resolve against.
+   * Required for any card whose media is `flex-1`: a venue photo collapses to nothing
+   * without a definite height to resolve against.
    * Cards built only from natural-height content leave it off and size themselves.
    *
    * Pairing `overflow-x: auto` with `overflow-y: hidden` is what makes the track a

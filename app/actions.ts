@@ -5,7 +5,6 @@ import {
   ATTENDANCE,
   DATES,
   FOOD,
-  PALETTES,
   VENUES,
   draftFromLabels,
   trackForDate,
@@ -119,7 +118,10 @@ export async function submitBallot(input: unknown): Promise<SubmitResult> {
         labelOf(DATES, ballot.dateId, (d) => d.label),
         labelOf(VENUES, ballot.venueId, (v) => v.name),
         labelOf(FOOD, ballot.foodId, (f) => f.name),
-        labelOf(PALETTES, ballot.paletteId, (p) => p.name),
+        // The batch no longer votes on a palette, but column G stays where it is:
+        // five ballots were cast while it did, and shifting the column would slide
+        // their answers one cell left. New ballots leave it blank.
+        '',
         labelOf(ATTENDANCE, ballot.attending, (a) => a.label),
       ],
     ])

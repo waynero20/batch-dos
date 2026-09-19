@@ -2,8 +2,31 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { voteCount } from '@/app/actions'
 import { ProgramTimeline } from '@/components/program-timeline'
-import { PALETTES } from '@/lib/ballot'
 import { PROGRAM } from '@/lib/program'
+
+/**
+ * The blues, whites and yellows the deck's moodboard settled on.
+ *
+ * These were read off the four palette options while the batch still voted on one.
+ * That question is gone, so the shades live here instead — the card announces a
+ * dress code now rather than previewing a choice.
+ */
+const DRESS_SWATCHES = [
+  '#0A1680',
+  '#93B2F8',
+  '#FBEDB0',
+  '#F7B94C',
+  '#FCFDFF',
+  '#1A1A55',
+  '#FEE14E',
+  '#EFF8FF',
+  '#104B6C',
+  '#F5EFC1',
+  '#E3DED8',
+  '#224668',
+  '#C9930A',
+  '#D5BFA7',
+] as const
 
 export default async function DonePage({
   searchParams,
@@ -89,7 +112,7 @@ export default async function DonePage({
               Any shade of blue, white, or yellow
             </p>
             <div className="mt-5 flex flex-wrap gap-1.5">
-              {[...new Set(PALETTES.flatMap((p) => p.swatches))].map((hex) => (
+              {DRESS_SWATCHES.map((hex) => (
                 <span
                   key={hex}
                   className="size-8 rounded-selector lg:size-9"
@@ -98,7 +121,7 @@ export default async function DonePage({
                 />
               ))}
             </div>
-            <p className="caption mt-4">Final palette follows whichever the batch picks.</p>
+            <p className="caption mt-4">Pick whichever of these you already own.</p>
           </section>
         </div>
 

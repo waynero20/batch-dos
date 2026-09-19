@@ -11,8 +11,8 @@ Design and decisions: [`docs/superpowers/specs/2026-09-14-batch-dos-reunion-voti
 | Route | What it does |
 |---|---|
 | `/` | Roster picker — search 73 names, voted ones show a ✓ |
-| `/vote` | Six screens: date → venue → food → dress code → the day's programme → attendance |
-| `/done` | Confirmation and the dress-code card |
+| `/vote` | Five screens: date → venue → food → the day's programme → attendance |
+| `/done` | Confirmation and the turnout so far |
 | `/results/<RESULTS_SECRET>` | Committee tally. Any other secret 404s. |
 
 **The date picks the track.** December 26 and January 2 are province dates, January 9 is

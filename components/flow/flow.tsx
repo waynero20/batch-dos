@@ -20,7 +20,6 @@ import { DayStep } from './steps/day'
 import { FoodStep } from './steps/food'
 import { IdentityStep } from './steps/identity'
 import { RsvpStep } from './steps/rsvp'
-import { WearStep } from './steps/wear'
 import { WhenStep } from './steps/when'
 import { WhereStep } from './steps/where'
 
@@ -108,14 +107,14 @@ export function Flow({
       setVotedAt(existing.votedAt)
       setDraft((prev) => ({ ...existing.draft, ...prev }))
       // A complete ballot unlocks every step, so changing one answer is one tap on
-      // the progress bar rather than a walk through all six questions.
+      // the progress bar rather than a walk through every question again.
       setFurthest((f) => Math.max(f, reachedThrough(existing.draft)))
     })
   }, [])
 
   // The back gesture walks the flow, not the site.
   useEffect(() => {
-    // A shared `#wear` must not drop someone into the middle of a ballot they have
+    // A shared `#food` must not drop someone into the middle of a ballot they have
     // not started, so the flow always opens on its own first screen.
     if (window.location.hash) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
@@ -302,9 +301,6 @@ export function Flow({
       )}
       {current.id === 'food' && (
         <FoodStep value={draft.foodId} onChoose={(id) => choose('foodId', id)} />
-      )}
-      {current.id === 'wear' && (
-        <WearStep value={draft.paletteId} onChoose={(id) => choose('paletteId', id)} />
       )}
       {current.id === 'day' && <DayStep />}
       {current.id === 'rsvp' && (
