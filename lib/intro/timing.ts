@@ -2,9 +2,11 @@ import type { IntroConfig, NamesScene, Photo, Scene } from './types'
 
 /**
  * Ceiling for the whole intro, handoff included. The brief said 60 s; it was raised so all
- * 73 names can be read (each up for at least READABLE_NAME_MS) without rushing other scenes.
+ * 75 names can be read (each up for at least READABLE_NAME_MS) without rushing other scenes.
+ * It tracks the roster: each name added buys its reading time here rather than out of the
+ * scenes either side of the list.
  */
-export const MAX_INTRO_MS = 70_000
+export const MAX_INTRO_MS = 70_400
 
 /** No name may flash by faster than this: below it, names stop being readable. */
 export const READABLE_NAME_MS = 200
