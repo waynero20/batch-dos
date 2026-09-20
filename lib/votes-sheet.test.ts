@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ATTENDANCE, DATES, FOOD, VENUES } from './ballot'
-import { dateSerial, seedRows, voteSerials, type VoteRow } from './sheets'
+import { dateSerial, hasVoted, seedRows, voteSerials, type VoteRow } from './sheets'
 import { buildTally, tallyWrites } from './votes-sheet'
 
 /**
@@ -69,6 +69,46 @@ describe('voteSerials', () => {
 
   it('ignores the blank rows the seed pads with', () => {
     expect(voteSerials([[46_284, ''], ['', '']]).size).toBe(0)
+  })
+})
+
+/**
+ * What counts as having voted.
+ *
+ * This decides turnout, the "Voted" chip on the picker, and whether a returning
+ * member is shown their own answers. It used to read column A alone, so the three
+ * ballots a re-seed stripped of their timestamp were treated as never cast — while
+ * their answers sat on the tab being counted by every question below.
+ */
+describe('hasVoted', () => {
+  const row = (over: Partial<VoteRow> = {}): VoteRow => ({
+    row: 2,
+    name: 'Cabatingan, Apolinario',
+    votedAt: '',
+    track: '',
+    date: '',
+    venue: '',
+    food: '',
+    palette: '',
+    attending: '',
+    ...over,
+  })
+
+  it('counts an ordinary ballot', () => {
+    expect(hasVoted(row({ votedAt: 'September 19, 2026', attending: "I'm in" }))).toBe(true)
+  })
+
+  it('counts a ballot whose timestamp was erased', () => {
+    expect(hasVoted(row({ attending: "I'm in" }))).toBe(true)
+  })
+
+  it('counts a timestamp whose answers were lost', () => {
+    expect(hasVoted(row({ votedAt: 'September 19, 2026' }))).toBe(true)
+  })
+
+  it('leaves a member who has not voted alone', () => {
+    expect(hasVoted(row())).toBe(false)
+    expect(hasVoted(row({ votedAt: '  ', attending: '  ' }))).toBe(false)
   })
 })
 
@@ -196,10 +236,18 @@ describe('buildTally', () => {
     expect(label(tally.castRow)).toBe('Ballots cast')
   })
 
-  it('counts a timestamp whichever way it was stored', () => {
-    // Serials from this app, ISO text from any deploy that has not caught up. A
-    // tally that saw only one of the two would under-report while both are live.
-    expect(cell(tally.castRow, 1)).toBe('=COUNT($A$2:$A$1000)+COUNTIF($A$2:$A$1000,"?*")')
+  it('counts a ballot by its answers, not only by its timestamp', () => {
+    // The bug this replaced: a re-seed blanked three timestamps, the answers stayed
+    // put, and the tally read 6 of 9 — so "December 26" came out at 133%.
+    expect(cell(tally.castRow, 1)).toBe(
+      '=SUMPRODUCT(SIGN((LEN($A$2:$A$1000)>0)+(LEN($H$2:$H$1000)>0)))',
+    )
+  })
+
+  it('counts a row holding both a timestamp and an answer exactly once', () => {
+    // SIGN is the whole point: (TRUE)+(TRUE) is 2, and a turnout of double the
+    // ballots cast would be a worse number than the one it replaced.
+    expect(cell(tally.castRow, 1)).toContain('SIGN(')
   })
 
   it('does not count the blank rows the seed pads with', () => {
@@ -226,7 +274,7 @@ describe('tallyWrites', () => {
 
   it('sends the labels RAW, so a date-shaped one stays a label', () => {
     expect(labels!.input).toBe('RAW')
-    expect(labels!.range).toBe('Votes!J1:J25')
+    expect(labels!.range).toBe('Votes!J1:J60')
 
     const column = labels!.values.flat()
     for (const dateLabel of DATES.map((d) => d.label)) {
@@ -236,7 +284,7 @@ describe('tallyWrites', () => {
 
   it('sends only the two formula columns to be parsed', () => {
     expect(formulas!.input).toBe('USER_ENTERED')
-    expect(formulas!.range).toBe('Votes!K1:L25')
+    expect(formulas!.range).toBe('Votes!K1:L60')
 
     for (const row of formulas!.values) expect(row).toHaveLength(2)
     for (const cell of formulas!.values.flat()) {
@@ -247,5 +295,20 @@ describe('tallyWrites', () => {
 
   it('covers the same rows from both writes, so the columns stay aligned', () => {
     expect(labels!.values).toHaveLength(formulas!.values.length)
+  })
+
+  /**
+   * Dropping the palette question took the tally from 31 rows to 25. The write only
+   * covered the new 25, so rows 26-31 kept the old block — a second, frozen RSVP
+   * tally sitting under the live one, with a pie still pointing at it.
+   */
+  it('blanks the rows below the tally instead of leaving the old block there', () => {
+    const tally = buildTally()
+    expect(labels!.values.length).toBeGreaterThan(tally.lastRow)
+
+    for (let row = tally.lastRow + 1; row <= labels!.values.length; row++) {
+      expect(labels!.values[row - 1]).toEqual([''])
+      expect(formulas!.values[row - 1]).toEqual(['', ''])
+    }
   })
 })

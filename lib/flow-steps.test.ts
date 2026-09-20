@@ -14,11 +14,27 @@ describe('FLOW_STEPS', () => {
     expect(LAST_STEP).toBe(FLOW_STEPS.length - 1)
   })
 
-  it('gives every screen a label and a question', () => {
+  it('gives every screen a label', () => {
     for (const step of FLOW_STEPS) {
       expect(step.short.trim(), `${step.id} short`).not.toBe('')
+    }
+  })
+
+  /**
+   * Every screen but the first, which deliberately asks nothing: the name input is
+   * the whole screen and the heading above it was dropped to leave room for the
+   * phone keyboard. `Screen` renders no <h1> at all when the title is blank, so this
+   * is the one step allowed to have one.
+   */
+  it('gives every question screen a question', () => {
+    for (const [i, step] of FLOW_STEPS.entries()) {
+      if (i === WHO_STEP) continue
       expect(step.title.trim(), `${step.id} title`).not.toBe('')
     }
+  })
+
+  it('asks nothing on the identity screen', () => {
+    expect(FLOW_STEPS[WHO_STEP]!.title).toBe('')
   })
 
   it('carries no standfirst at all — the question is the whole screen', () => {

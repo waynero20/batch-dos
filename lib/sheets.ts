@@ -363,5 +363,18 @@ export async function readVoteSerials(): Promise<Map<string, CellValue>> {
   return voteSerials(await readRangeRaw(`${VOTES_TAB}!A2:B200`))
 }
 
-/** A member has voted once their row carries a timestamp. */
-export const hasVoted = (v: VoteRow): boolean => Boolean(v.votedAt)
+/**
+ * A member has voted once their row carries a ballot.
+ *
+ * Not "once it carries a timestamp". Column A is a single cell and a re-seed once
+ * blanked three of them — the bug `seedRows` now refuses. Those three rows still hold
+ * every answer their owners gave, but a timestamp-only test called them uncast: they
+ * were missing from the committee's turnout, they were offered the ballot again with
+ * no "Voted" chip, and coming back would not have shown them their own answers.
+ *
+ * `attending` is required by `ballotSchema`, so every ballot ever submitted has one.
+ * The timestamp still counts on its own, so a row that kept its stamp and somehow lost
+ * its answers is not written off either.
+ */
+export const hasVoted = (v: VoteRow): boolean =>
+  Boolean(v.attending.trim() || v.votedAt.trim())

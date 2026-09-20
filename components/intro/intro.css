@@ -510,11 +510,19 @@ html:has(.intro-root) {
   to { transform: scaleX(1); }
 }
 
-.intro-skip {
+.intro-controls {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 0.5rem);
   right: calc(env(safe-area-inset-right) + 0.5rem);
   z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Two weights, on purpose: Skip stays a way out you have to look for, Next is the one
+   that invites a press. Same size and font so they still read as a pair. */
+.intro-skip {
   min-width: 44px;
   min-height: 44px;
   padding: 0 1rem;
@@ -539,8 +547,36 @@ html:has(.intro-root) {
   outline-offset: -6px;
 }
 
-.intro-root[data-phase='leaving'] .intro-skip {
+.intro-next {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: 1px solid rgb(243 238 230 / 0.32);
+  border-radius: 999px;
+  background: rgb(243 238 230 / 0.06);
+  color: rgb(243 238 230 / 0.9);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease;
+}
+
+.intro-next:hover,
+.intro-next:focus-visible {
+  border-color: rgb(243 238 230 / 0.68);
+  background: rgb(243 238 230 / 0.14);
+  color: rgb(243 238 230);
+}
+
+.intro-next:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 2px;
+}
+
+.intro-root[data-phase='leaving'] .intro-controls {
   opacity: 0;
+  transition: opacity 250ms ease;
 }
 
 .intro-stage[data-scene='tara'] .intro-skip,
@@ -549,6 +585,20 @@ html:has(.intro-root) {
 .intro-stage[data-scene='tara'] .intro-skip:focus-visible,
 .intro-stage[data-scene='planohan'] .intro-skip:hover,
 .intro-stage[data-scene='planohan'] .intro-skip:focus-visible { color: var(--navy); }
+.intro-stage[data-scene='tara'] .intro-next,
+.intro-stage[data-scene='planohan'] .intro-next {
+  border-color: rgb(10 22 128 / 0.3);
+  background: rgb(10 22 128 / 0.05);
+  color: rgb(10 22 128 / 0.8);
+}
+.intro-stage[data-scene='tara'] .intro-next:hover,
+.intro-stage[data-scene='tara'] .intro-next:focus-visible,
+.intro-stage[data-scene='planohan'] .intro-next:hover,
+.intro-stage[data-scene='planohan'] .intro-next:focus-visible {
+  border-color: rgb(10 22 128 / 0.6);
+  background: rgb(10 22 128 / 0.12);
+  color: var(--navy);
+}
 .intro-stage[data-scene='tara'] .intro-progress,
 .intro-stage[data-scene='planohan'] .intro-progress { background: rgb(10 22 128 / 0.12); }
 .intro-stage[data-scene='tara'] .intro-progress > span,

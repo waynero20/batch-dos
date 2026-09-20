@@ -31,7 +31,7 @@ const COUNT = 'K'
 /**
  * The bottom of the ranges the formulas cover.
  *
- * Deliberately far below the 73 rows the roster currently fills: the masterlist
+ * Deliberately far below the 75 rows the roster currently fills: the masterlist
  * grows, and a tally that silently stopped counting at row 74 would be worse than
  * one that never worked.
  */
@@ -107,12 +107,24 @@ export function buildTally(): Tally {
 
   push('Tally', 'Votes', 'Share')
 
-  // Two terms, because column A can hold either kind of timestamp. COUNT sees the
-  // date serials this app writes now; COUNTIF "?*" sees the ISO text an older
-  // deploy wrote, and would keep seeing it if a stale one were still live. A serial
-  // is not text and text is not a number, so nothing is counted twice.
+  // A ballot is counted by its answers, not by its timestamp.
+  //
+  // Column A is a single cell, and a re-seed once blanked three of them — the bug
+  // `seedRows` now refuses. The answers survived, but a tally keyed to column A read
+  // six where nine ballots were sitting on the tab, and every share below divided by
+  // that six and printed "133%". `attending` is required by `ballotSchema`, so every
+  // ballot ever written has one.
+  //
+  // Either column alone is enough: LEN sees a date serial and text alike, the two
+  // terms are OR-ed by SIGN rather than added, and a row is counted once or not at
+  // all. A recovered timestamp on a row whose answers were lost still counts too.
   const timestamps = rangeOf('Timestamp')
-  const castRow = push('Ballots cast', `=COUNT(${timestamps})+COUNTIF(${timestamps},"?*")`, '')
+  const attending = rangeOf('Attending')
+  const castRow = push(
+    'Ballots cast',
+    `=SUMPRODUCT(SIGN((LEN(${timestamps})>0)+(LEN(${attending})>0)))`,
+    '',
+  )
   const waitingRow = push('Not yet voted', '', '')
 
   // COUNTIF "?*", not COUNTA: the seed pads past the end of the roster, and a padded
@@ -154,6 +166,16 @@ export function buildTally(): Tally {
 }
 
 /**
+ * How far down the tally clears on every write.
+ *
+ * The block shrinks as well as grows: dropping the palette question took six rows off
+ * the bottom. A write covering only the new extent would leave the old tail behind —
+ * a second, frozen RSVP block sitting under the real one — so every run blanks down
+ * to here, well past anything the ballot could produce.
+ */
+const CLEAR_TO_ROW = 60
+
+/**
  * The tally goes to the sheet in two writes, and it has to.
  *
  * The formulas need USER_ENTERED — that is the only thing that makes a leading "="
@@ -165,19 +187,23 @@ export function buildTally(): Tally {
  * So the labels go RAW and stay the strings the ballot stores, and only the two
  * formula columns are parsed.
  */
-export const tallyWrites = (tab: string, tally: Tally) =>
-  [
+export const tallyWrites = (tab: string, tally: Tally) => {
+  const lastRow = Math.max(tally.lastRow, CLEAR_TO_ROW)
+  const rows = Array.from({ length: lastRow }, (_, i) => tally.rows[i] ?? [])
+
+  return [
     {
-      range: `${tab}!${LABEL}1:${LABEL}${tally.lastRow}`,
-      values: tally.rows.map((r) => [r[0] ?? '']),
+      range: `${tab}!${LABEL}1:${LABEL}${lastRow}`,
+      values: rows.map((r) => [r[0] ?? '']),
       input: 'RAW' as const,
     },
     {
-      range: `${tab}!${COUNT}1:L${tally.lastRow}`,
-      values: tally.rows.map((r) => [r[1] ?? '', r[2] ?? '']),
+      range: `${tab}!${COUNT}1:L${lastRow}`,
+      values: rows.map((r) => [r[1] ?? '', r[2] ?? '']),
       input: 'USER_ENTERED' as const,
     },
   ] satisfies { range: string; values: CellValue[][]; input: 'RAW' | 'USER_ENTERED' }[]
+}
 
 /* -------------------------------------------------------------------------- */
 /* Formatting                                                                   */

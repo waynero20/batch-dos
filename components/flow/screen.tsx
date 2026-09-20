@@ -100,10 +100,14 @@ export function Screen({
           data-enter={enter}
           className={`flex min-h-0 w-full flex-col items-center py-2 ${zooming ? 'zooming' : ''}`}
         >
-          <h1 className="si si-1 h-display mt-2.5 max-w-[16ch] shrink-0 text-center text-[2rem] sm:text-[2.5rem] lg:mt-3 lg:text-[3rem]">
-            {title}
-          </h1>
-
+          {/* The identity screen carries no question — the input is the whole ask, and
+              on a phone the keyboard needs the room. An empty <h1> would still be a
+              heading to anything reading the page, so it is not rendered at all. */}
+          {title && (
+            <h1 className="si si-1 h-display mt-2.5 max-w-[16ch] shrink-0 text-center text-[2rem] sm:text-[2.5rem] lg:mt-3 lg:text-[3rem]">
+              {title}
+            </h1>
+          )}
 
           <div className="si si-2 mt-5 min-h-0 w-full lg:mt-7">{children}</div>
         </div>

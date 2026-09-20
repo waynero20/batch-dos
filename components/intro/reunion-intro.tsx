@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { IntroConfig, Scene } from '@/lib/intro/types'
+import { advancesOnClick } from '@/lib/intro/interaction'
 import { sceneDuration, scenePhotos } from '@/lib/intro/timing'
 import { ProgressBar } from './progress-bar'
 import { FinalLine } from './scenes/final-line'
@@ -11,6 +12,7 @@ import { PhotoMontage } from './scenes/photo-montage'
 import { PlanohanScene } from './scenes/planohan-scene'
 import { QuietLines } from './scenes/quiet-lines'
 import { TaraScene } from './scenes/tara-scene'
+import { NextButton } from './next-button'
 import { SkipButton } from './skip-button'
 import { usePausableTimeout } from './use-pausable-timeout'
 import { usePreload } from './use-preload'
@@ -37,12 +39,20 @@ export function ReunionIntro({ config, startAt = 0, reducedMotion, onEnd, onSkip
   const scene = scenes[index]!
   const isLast = index === scenes.length - 1
 
-  usePausableTimeout(
-    sceneDuration(scene),
-    () => (isLast ? onEnd() : setIndex((i) => i + 1)),
-    paused,
-    index,
-  )
+  /**
+   * One step forward, however it was asked for: the timer running out, a tap on the stage,
+   * or the Next button. Off the end it hands over with the full fade rather than the abrupt
+   * one Skip uses — reaching the end by tapping is still reaching the end.
+   *
+   * Bumping the index is all a jump needs: the scene timer, the progress bar and the name
+   * flurry are all keyed to it, so they restart together.
+   */
+  const advance = useCallback(() => {
+    if (isLast) onEnd()
+    else setIndex((i) => i + 1)
+  }, [isLast, onEnd])
+
+  usePausableTimeout(sceneDuration(scene), advance, paused, index)
 
   // This scene's photos and the next scene's, so nothing pops in late.
   const upcoming = useMemo(
@@ -54,7 +64,12 @@ export function ReunionIntro({ config, startAt = 0, reducedMotion, onEnd, onSkip
   const previous = scenes[index - 1]
 
   return (
-    <div className="intro-stage" data-scene={scene.type} data-paused={paused || undefined}>
+    <div
+      className="intro-stage"
+      data-scene={scene.type}
+      data-paused={paused || undefined}
+      onClick={(e) => advancesOnClick(e.target as Element | null) && advance()}
+    >
       <div className="intro-scenes" aria-hidden="true">
         {renderScene(scene, index, { names, paused, reducedMotion, previous })}
       </div>
@@ -64,7 +79,11 @@ export function ReunionIntro({ config, startAt = 0, reducedMotion, onEnd, onSkip
       </p>
 
       <ProgressBar key={index} duration={sceneDuration(scene)} />
-      <SkipButton onSkip={onSkip} />
+
+      <div className="intro-controls">
+        <SkipButton onSkip={onSkip} />
+        <NextButton onNext={advance} />
+      </div>
     </div>
   )
 }
